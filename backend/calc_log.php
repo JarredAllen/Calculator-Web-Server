@@ -14,7 +14,7 @@
 	$result=$_POST['result'];
 	
 	try {
-		$conn = new PDO("mysql:host=localhost;dbname=mysql", databaseInsertLogin()[0], databaseInsertLogin()[1]);
+		$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_credentials[0], insert_credentials[1]);
 		$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		$cmd = "INSERT INTO calc_log (IPAddress, UserID, UserAgent, Operation, Result) VALUES (INET6_ATON(:ipaddress), :userid, :userAgent, :op, :result)";
 		$stmt = $conn->prepare($cmd);

@@ -5,7 +5,7 @@
 	$password=$_POST['password'];
 	
 	$cmd = 'SELECT email FROM users WHERE email=:email AND password=SHA2(:password, 256)';
-	$conn = new PDO("mysql:host=localhost;dbname=mysql", databaseViewLogin()[0], databaseViewLogin()[1]);
+	$conn = new PDO("mysql:host=localhost;dbname=mysql", view_credentials[0], view_credentials[1]);
 	$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 	$stmt = $conn->prepare($cmd);
 	$stmt->bindParam(':email', $email);
