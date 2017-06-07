@@ -1,4 +1,5 @@
 <?php
+	//sample login credentials, not the real ones
 	define('view_username', 'view');
 	define('view_password', 'password');
 	
