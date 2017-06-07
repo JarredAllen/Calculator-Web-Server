@@ -1,0 +1,45 @@
+.input {
+	border: 1px solid #555555;
+	padding: 3px;
+	background-color: #dddddd;
+	font-size: 15px;
+	
+	display: inline-block;
+}
+
+.answer {
+	font-size: 60px;
+	
+	max-width: 250px;
+	max-height: 100px;
+	margin-left: 3px;
+	margin-top: 10px;
+	
+	text-align: center;
+}
+
+.errors {
+	font-size: 60px;
+	color: #ff0000;
+}
+
+.hidden {
+	display: none;
+}
+	
+#answer_error {
+	font-size: 20px;
+	color: #ff0000;
+}
+
+#input_error_display {
+	font-size: 20px;
+	color: #ff0000;
+	
+	max-width: 350px;
+}
+
+#input_prompt {
+	font-size: 20px;
+	max-width: 350px;
+}

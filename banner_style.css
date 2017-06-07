@@ -1,0 +1,13 @@
+#banner_holder {
+	border: 1px solid #000000;
+	text-align: right;
+	background-color: #eeeeee;
+}
+
+#username {
+	display: inline;
+	background-color: #bbbbbb;
+}
+#username:hover {
+	background-color: #999999;
+}
