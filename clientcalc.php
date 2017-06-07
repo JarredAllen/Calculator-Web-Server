@@ -93,6 +93,10 @@
 			return false;
 		}
 		
+		function htmlEntities(str) {
+			return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+		}
+		
 		function displayHistory() {
 			var tableData=JSON.parse(this.responseText);
 			var table=document.getElementById("history");
@@ -100,8 +104,8 @@
 			for(rowNum in tableData) {
 				var row=table.insertRow(parseInt(rowNum));
 				
-				row.insertCell(0).innerHTML=tableData[rowNum][4];
-				row.insertCell(1).innerHTML=tableData[rowNum][5];
+				row.insertCell(0).innerHTML=htmlEntities(tableData[rowNum][4]);
+				row.insertCell(1).innerHTML=htmlEntities(tableData[rowNum][5]);
 			}
 		}
 		
