@@ -31,7 +31,7 @@
 			}
 			function emailExists($email) {
 				$cmd = 'SELECT COUNT(*) FROM users WHERE email=:email';
-				$conn = new PDO("mysql:host=localhost;dbname=mysql", view_credentials[0], view_credentials[1]);
+				$conn = new PDO("mysql:host=localhost;dbname=mysql", view_username, view_password);
 				$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$stmt = $conn->prepare($cmd);
 				$stmt->bindParam(':email', $email);
@@ -44,7 +44,7 @@
 			}
 			else {
 				$cmd = 'INSERT INTO users (email, password, username) VALUES (:email, SHA2(:password, 256), :username)';
-				$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_credentials[0], insert_credentials[1]);
+				$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_username, insert_password);
 				$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$stmt = $conn->prepare($cmd);
 				$stmt->bindParam(':email', $_POST['email']);

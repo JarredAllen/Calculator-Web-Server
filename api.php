@@ -17,7 +17,7 @@
 	}
 	
 	function getCalculation($num) {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials[0], view_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Timestamp, INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result FROM calc_log LIMIT '.$num.',1';
 		$stmt = $conn->prepare($cmd);
 		$stmt->execute();
@@ -28,7 +28,7 @@
 	
 	function logCalculation($ipaddress, $userid, $useragent, $operation, $result) {
 		$cmd='INSERT INTO calc_log (IPAddress, UserID, UserAgent, Operation, Result) VALUES (INET6_ATON(:ipaddress), :userid, :useragent, :operation, :result)';
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', insert_credentials[0], insert_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', insert_username, insert_password);
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':ipaddress', $ipaddress);
 		$stmt->bindParam(':userid', $userid);
@@ -41,7 +41,7 @@
 	
 	function getCalculationLog($user, $orderby, $page) {
 		// $page is injection-vulnerable, so the calling method must check this is a legit number
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials[0], view_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Timestamp, INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result FROM calc_log';
 		if($user !== null) {
 			if(is_numeric($user)) {
@@ -153,7 +153,8 @@
 				echo getCalculationLog($user, $sortby, $page);
 				break;
 			}
-			elseif (substr($res,1,6)) {
+			elseif (substr($res,1,6)=='userid') {
+				header('Content-Type: text');
 				if(isLoggedIn()) {
 					echo getUserId();
 				}
@@ -209,7 +210,7 @@
 				$stmt->bindParam(':operation', $vals->operation);
 				$stmt->bindParam(':result', $vals->result);
 				$stmt->execute();*/
-				$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials[0], view_credentials[1]);
+				$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 				$stmt = $conn->prepare('SELECT COUNT(*) FROM calc_log;');
 				$stmt->execute();
 				$number = $stmt->fetchAll()[0][0];

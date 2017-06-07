@@ -17,7 +17,7 @@
 		if($name  == 'User_Session_ID') {
 			//check if it already is in the cookie database
 			$cmd = 'SELECT COUNT(*) FROM session_cookies WHERE Cookie=:value';
-			$conn = new PDO("mysql:host=localhost;dbname=mysql", view_credentials[0], view_credentials[1]);
+			$conn = new PDO("mysql:host=localhost;dbname=mysql", view_username, view_password);
 			$stmt = $conn->prepare($cmd);
 			$stmt->bindParam(':value', $value);
 			$stmt->execute();
@@ -27,7 +27,7 @@
 				$_COOKIE['User_Session_ID']=$value;
 				//update the cookie database
 				$cmd = 'INSERT INTO session_cookies (cookie, expire) VALUES ( :value , :expiration )';
-				$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_credentials[0], insert_credentials[1]);
+				$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_username, insert_password);
 				$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 				$stmt = $conn->prepare($cmd);
 				$stmt->bindParam(':value', $value);
@@ -43,7 +43,7 @@
 	function getSessionCookieExpiration($cookie) {
 		// return 955627200;		//This line may be uncommented to test handling of expired cookies
 		$cmd = 'SELECT expire FROM session_cookies WHERE cookie=:cookie';
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials[0], view_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':cookie', $cookie);
@@ -66,7 +66,7 @@
 	
 	function clearOldCookies() {
 		$cmd = 'DELETE FROM session_cookies WHERE expire<=:time';
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_credentials[0], modify_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
 		$stmt = $conn->prepare($cmd);
 		$time=time();
 		$stmt->bindParam(':time', $time);
@@ -84,7 +84,7 @@
 	}
 	
 	function logout() {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_credentials[0], modify_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
 		$cmd = 'UPDATE session_cookies SET Email=null WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
@@ -93,7 +93,7 @@
 	}
 	
 	function login($email) {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_credentials[0], modify_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
 		$cmd = 'UPDATE session_cookies SET Email=:email WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':email', $email);
@@ -102,7 +102,7 @@
 	}
 	
 	function getUsername() {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials[0], view_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
@@ -122,7 +122,7 @@
 	}
 	
 	function getUserID() {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials()[0], view_credentials()[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
@@ -142,7 +142,7 @@
 	}
 	
 	function getUserById($id) {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials[0], view_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Username FROM Users WHERE UserID=:id;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':id', $id);
@@ -152,7 +152,7 @@
 	}
 	
 	function isLoggedIn() {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_credentials[0], view_credentials[1]);
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);

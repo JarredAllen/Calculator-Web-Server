@@ -132,7 +132,7 @@
 		echo '</div><div class="errors">';
 		
 		try {
-			$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_credentials[0], insert_credentials[1]);
+			$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_username, insert_password);
 			$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 			$cmd = "INSERT INTO calc_log (IPAddress, UserAgent, Operation, Result) VALUES (INET6_ATON(:ipaddress), :userAgent, :op, :result)";
 			//echo $cmd;

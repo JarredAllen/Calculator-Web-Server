@@ -7,7 +7,7 @@
 	
 	function getNumLogEntries() {
 		$cmd = "SELECT COUNT(*) FROM calc_log;";
-		$conn = new PDO("mysql:host=localhost;dbname=mysql", view_credentials[0], view_credentials[1]);
+		$conn = new PDO("mysql:host=localhost;dbname=mysql", view_username, view_password);
 		$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		$stmt = $conn->prepare($cmd);
 		$stmt->execute();
