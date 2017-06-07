@@ -39,7 +39,7 @@
 		return $stmt->fetchAll();
 	}
 	
-	function getCalculationLog($user, $orderby, $page) {
+	function getCalculationLog($user, $orderby, $page, $pagesize) {
 		// $page is injection-vulnerable, so the calling method must check this is a legit number
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Timestamp, INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result FROM calc_log';
@@ -94,7 +94,7 @@
 		}
 		if($page!==null && $page>0) {
 			$page--;
-			$cmd.=' LIMIT '.($page*10).',10';
+			$cmd.=' LIMIT '.($page*$pagesize).','.$pagesize;
 		}
 		// echo $cmd;  //Uncomment this if this method is acting up
 		$stmt = $conn->prepare($cmd);
@@ -133,6 +133,7 @@
 				$user=null;
 				$sortby=null;
 				$page=null;
+				$pagesize=10;
 				if(isset($_GET['user'])) {
 					$user=$_GET['user'];
 				}
@@ -150,7 +151,13 @@
 				if(isset($_GET['page'])) {
 					$page=(int)$_GET['page'];	//note: This returns 0 if the user does not give a valid number.
 				}
-				echo getCalculationLog($user, $sortby, $page);
+				if(isset($_GET['pagesize'])) {
+					$pagesize=(int)$_GET['pagesize'];
+					if($pagesize<=0) {
+						$pagesize=10;
+					}
+				}
+				echo getCalculationLog($user, $sortby, $page, $pagesize);
 				break;
 			}
 			elseif (substr($res,1,6)=='userid') {
