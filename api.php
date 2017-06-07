@@ -27,7 +27,7 @@
 	}
 	
 	function logCalculation($ipaddress, $userid, $useragent, $operation, $result) {
-		$cmd='INSERT INTO calc_log (INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result) VALUES (:ipaddress, :userid, :useragent, :operation, :result)';
+		$cmd='INSERT INTO calc_log (IPAddress, UserID, UserAgent, Operation, Result) VALUES (INET6_ATON(:ipaddress), :userid, :useragent, :operation, :result)';
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', databaseInsertLogin()[0], databaseInsertLogin()[1]);
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':ipaddress', $ipaddress);
@@ -36,6 +36,7 @@
 		$stmt->bindParam(':operation', $operation);
 		$stmt->bindParam(':result', $result);
 		$stmt->execute();
+		return $stmt->fetchAll();
 	}
 	
 	function getCalculationLog($user, $orderby, $page) {
@@ -186,7 +187,7 @@
 					echo 'Incomplete JSON parameter';
 					break;
 				}
-				logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['USER_AGENT'], $vals->operation, $vals->result);/*
+				echo json_encode(logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $vals->operation, $vals->result));/*
 				$cmd='INSERT INTO calc_log (INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result) VALUES (:ipaddress, :userid, :useragent, :operation, :result)';
 				
 				$stmt = $conn->prepare($cmd);
