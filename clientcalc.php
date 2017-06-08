@@ -67,50 +67,7 @@
 			res.addEventListener("load",displayAnswer);
 			res.open("GET", "/api.php/calculate/"+op+"/"+one+"/"+two);
 			res.send();
-			/*var out = 0;
-			var calc=one+'?'+two;
 			
-			switch(op) {
-				case "Add":
-					out=+one+(+two);
-					calc=one+'+'+two;
-					break;
-				case "Subtract":
-					out=+one-+two;
-					calc=one+'-'+two;
-					break;
-				case "Multiply":
-					out=+one*+two;
-					calc=one+'*'+two;
-					break;
-				case "Divide":
-					out=+one/+two;
-					calc=one+'/'+two;
-					break;
-			}
-			document.getElementById("answer").innerHTML=out;
-			
-			//log the calculation
-			var req=new XMLHttpRequest();
-			var params='entry='+JSON.stringify({"operation":calc, "result":out});
-			req.addEventListener("load", displayLogResponse);
-			req.open("POST", "/api.php/calculations", true);
-			req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-			req.send(params);
-			
-			//add the calculation to the local history
-			var table=document.getElementById("history");
-			try {
-				table.deleteRow(10);
-			}
-			catch (err) {
-				//The user does not have ten entries in the table
-				//Don't remove anything, because it will break
-				//Also don't remove this line
-			}
-			var row=table.insertRow(1);
-			row.innerHTML="<td>"+calc+"</td><td>"+out+"</td>";
-			*/
 			//return false, so it doesn't POST on its own
 			return false;
 		}
@@ -154,7 +111,11 @@
 		var operations=new Object();
 		function loadOperations() {
 			operations=JSON.parse(this.responseText);
-			document.getElementById("debug_stuff").innerHTML=this.responseText;
+			var opDropdown=document.getElementById("operation");
+			for(op in operations) {
+				opDropdown.innerHTML+="<option>"+op.charAt(0).toUpperCase()+op.slice(1)+"</option>"
+			}
+			//document.getElementById("debug_stuff").innerHTML=this.responseText;
 		}
 		req=new XMLHttpRequest();
 		req.addEventListener("load", loadOperations);

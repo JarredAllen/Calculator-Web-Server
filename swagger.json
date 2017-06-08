@@ -123,7 +123,7 @@
 		"get" : {
 			"tags" : [],
 			"summary" : "Performs the given calculation and gives the result.",
-			"operationId" : "calculate_binary_operation",
+			"operationId" : "calculate-binary_operation",
 			"produces" : ["text"],
 			"parameters" : [
 				{	"name" : "operation",
@@ -153,6 +153,41 @@
 				},
 				"404" : {
 					"description" : "The operation is not recognized, or requires three or more operators."
+				}
+			}
+		}
+	},
+	"/calculate/operations" : {
+		"get" : {
+			"tags" : [],
+			"summary" : "Returns a list of the operations and some info about them.",
+			"operationId" : "get-calculate-list",
+			"produces" : ["applications/json"],
+			"parameters" : [],
+			"responses" : {
+				"200" : {
+					"description" : "The requested list has been returned."
+				}
+			}
+		}
+	},
+	"/calculate/operations/{operationName}" : {
+		"get" : {
+			"tags" : [],
+			"summary" : "Returns a list of the operations and some info about them.",
+			"operationId" : "get-calculate-specific_operation",
+			"produces" : ["applications/json"],
+			"parameters" : [
+				{	"name" : "operationName",
+					"in" : "path",
+					"description" : "The specific operation to return info about.",
+					"required" : true,
+					"type" : "string"
+				}
+			],
+			"responses" : {
+				"200" : {
+					"description" : "The requested list has been returned."
 				}
 			}
 		}

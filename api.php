@@ -201,6 +201,12 @@
 						if(isset($x->$res[1])) {
 							$x=$x->$res[1];
 						}
+						else {
+							http_response_code(404);
+							echo 'unrecognized operation';
+							header('Content-Type: text');
+							die();
+						}
 					}
 					header('Content-Type: application/json');
 					echo json_encode($x);
