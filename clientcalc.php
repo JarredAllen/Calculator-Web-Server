@@ -7,7 +7,6 @@
 	<link rel="stylesheet" type="text/css" href="/calculator_style.css">
 
 	<script>
-		
 		function validateInput() {
 			//uncomment the next line to force input to validate
 			//return true;
@@ -15,18 +14,14 @@
 			var form = document.getElementById("input");
 			document.getElementById("input_error_display").innerHTML="";
 			
-			var one = +form.firstnumber.value;
-			var two = +form.secondnumber.value;
 			var errors=false;
 			
-			if(isNaN(one)) {
-				errors=true;
-				document.getElementById("input_error_display").innerHTML+="Your first number is not a valid number. ";
-			}
-			
-			if(isNaN(two)) {
-				errors=true;
-				document.getElementById("input_error_display").innerHTML+="Your second number is not a valid number.";
+			for(var i=1;i<=parseInt(form.getAttribute("data-operand-count")); i++) {
+				var num = +document.getElementById("operand"+i).value;
+				if(isNaN(num)) {
+					errors=true;
+					document.getElementById("input_error_display").innerHTML+="Operand #"+i+" is not a valid number";
+				}
 			}
 			
 			return !errors;
@@ -42,9 +37,11 @@
 			}
 			//do the calculation
 			var form = document.getElementById("input");
-			
-			var one = form.firstnumber.value;
-			var two = form.secondnumber.value;
+			var operands=[];
+			for(var i=1;i<=parseInt(form.getAttribute("data-operand-count")); i++) {
+				operands[i-1] = document.getElementById("operand"+i).value;
+				//console.log("operand #"+i+"="+document.getElementById("operand"+i).value);
+			}
 			var op  = form.operation.value;
 			
 			function displayAnswer() {
@@ -58,14 +55,17 @@
 				catch (err) {
 					//The user does not have ten entries in the table
 					//Don't remove anything, because it will break
-					//Also don't remove this line
 				}
 				var row=table.insertRow(1);
 				row.innerHTML="<td>"+ans[0]+"</td><td>"+ans[1]+"</td>";
 			}
 			var res = new XMLHttpRequest();
 			res.addEventListener("load",displayAnswer);
-			res.open("GET", "/api.php/calculate/"+op+"/"+one+"/"+two);
+			var uri="/api.php/calculate/"+op;
+			for (operand in operands) {
+				uri+="/"+operands[operand]
+			}
+			res.open("GET", uri);
 			res.send();
 			
 			//return false, so it doesn't POST on its own
@@ -113,14 +113,32 @@
 			operations=JSON.parse(this.responseText);
 			var opDropdown=document.getElementById("operation");
 			for(op in operations) {
-				opDropdown.innerHTML+="<option>"+op.charAt(0).toUpperCase()+op.slice(1)+"</option>"
+				opDropdown.innerHTML+="<option id=\"operation_"+op+"_option\">"+op.charAt(0).toUpperCase()+op.slice(1)+"</option>";
+				document.getElementById("operation_"+op+"_option").setAttribute("data-number", ""+operations[op].numbers);
 			}
-			//document.getElementById("debug_stuff").innerHTML=this.responseText;
+			adjustFormSize();
+			// document.getElementById("debug_stuff").innerHTML=this.responseText;
 		}
 		req=new XMLHttpRequest();
 		req.addEventListener("load", loadOperations);
 		req.open("GET", "/api.php/calculate/operations");
 		req.send();
+		
+		function adjustFormSize() {
+			var select = document.getElementById("input").operation;
+			var option = document.getElementById("operation_"+select.value.toLowerCase()+"_option");
+			var operands=parseInt(option.getAttribute("data-number"));
+			document.getElementById("input").setAttribute("data-operand-count", ""+operands);
+			var table=document.getElementById("input_table");
+			while(table.rows.length>1) {
+				table.deleteRow(0);
+			}
+			for(var i=1; i<=operands; i++) {
+				var row = table.insertRow(i-1);
+				row.insertCell(0).innerHTML = 'Operand #'+i;
+				row.insertCell(1).innerHTML = '<input type="text" id="operand'+i+'" name="operand'+i+'" autocomplete="off" required>';
+			}
+		}
 	</script>
 </head>
 
@@ -131,10 +149,10 @@
 	<p id="input_prompt">Please input the numbers and the operation.</p>
 	<p id="input_error_display"></p>
 	<form name="values" id="input" onSubmit="return processData()" method="post">
-		<table>
-		<tr><td>First Number: &emsp;&emsp;</td>			<td><input type="text" id="firstnumber" name="firstnumber" autocomplete="off" required autofocus value="<?php echo isset($_POST['firstnumber']) ? $_POST['firstnumber'] : '' ?>"></td></tr>
-		<tr><td>Second Number:&emsp;</td>				<td><input type="text" id="secondnumber" name="secondnumber" autocomplete="off" required value="<?php echo isset($_POST['secondnumber']) ? $_POST['secondnumber'] : '' ?>"></br></td></tr>
-		<tr><td>Operation: &emsp; &emsp; &emsp;</td>	<td><select name="operation" id="operation"></select></td></tr>
+		<table id="input_table">
+		<tr><td>Operand #1: </td>		<td><input type="text" id="operand1" name="operand1" autocomplete="off" required autofocus></td></tr>
+		<tr><td>Operand #2: </td>		<td><input type="text" id="operand2" name="operand2" autocomplete="off" required></br></td></tr>
+		<tr><td>Operation:&emsp;</td>	<td><select name="operation" id="operation" oninput="adjustFormSize()"></select></td></tr>
 		</table>
 		<input type="submit" value="Calculate!">
 	</form>

@@ -123,7 +123,7 @@
 		"get" : {
 			"tags" : [],
 			"summary" : "Performs the given calculation and gives the result.",
-			"operationId" : "calculate-binary_operation",
+			"operationId" : "calculate-binary_operator",
 			"produces" : ["text"],
 			"parameters" : [
 				{	"name" : "operation",
@@ -151,8 +151,45 @@
 				"200" : {
 					"description" : "Successful, returned the requested operation and the result, formatted in a more user-friendly way (i.e. Add/1/2 becomes 1+2=3)"
 				},
+				"400" : {
+					"description" : "The operation requires three or more operators."
+				},
 				"404" : {
-					"description" : "The operation is not recognized, or requires three or more operators."
+					"description" : "The operation is not recognized."
+				}
+			}
+		}
+	},
+	"/calculate/{operation}/{number}" : {
+		"get" : {
+			"tags" : [],
+			"summary" : "Performs the given calculation and gives the result.",
+			"operationId" : "calculate-unary_operator",
+			"produces" : ["text"],
+			"parameters" : [
+				{	"name" : "operation",
+					"in" : "path",
+					"description" : "The name of the operation to execute",
+					"required" : true,
+					"type" : "string"
+				},
+				{	"name" : "number",
+					"in" : "path",
+					"description" : "The number on which to apply the unary operator.",
+					"required" : true,
+					"type" : "number",
+					"format" : "double"
+				}
+			],
+			"responses" : {
+				"200" : {
+					"description" : "Successful, returned the requested operation and the result, formatted in a more user-friendly way (i.e. Add/1/2 becomes 1+2=3)"
+				},
+				"400" : {
+					"description" : "The operation requires two or more operators."
+				},
+				"404" : {
+					"description" : "The operation is not recognized."
 				}
 			}
 		}

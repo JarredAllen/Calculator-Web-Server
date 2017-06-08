@@ -196,6 +196,9 @@
 					$x->divide = new stdClass();
 					$x->divide->format="%1/%2";
 					$x->divide->numbers=2;
+					$x->sin = new stdClass();
+					$x->sin->format="sin(%1)";
+					$x->sin->numbers=1;
 					if(count($res)>1) {
 						$res[1]=strtolower($res[1]);
 						if(isset($x->$res[1])) {
@@ -212,43 +215,82 @@
 					echo json_encode($x);
 					break;
 				}
-				switch(strtolower($res[0])) {
+				$result = 'Sorry, something broke.';
+				$res[0]=strtolower($res[0]);
+				switch($res[0]) {
 					case 'add':
+						if(count($res)<=2) {
+							http_response_code(400);
+							echo 'missing operator(s) for binary operation';
+							header('Content-Type: text');
+							die();
+						}
 						$first=(double)$res[1];
 						$second=(double)$res[2];
 						$op = $first.'+'.$second;
-						$res=$first+$second;
+						$result=$first+$second;
 						break;
 					
 					case 'subtract':
+						if(count($res)<=2) {
+							http_response_code(400);
+							echo 'missing operator(s) for binary operation';
+							header('Content-Type: text');
+							die();
+						}
 						$first=(double)$res[1];
 						$second=(double)$res[2];
 						$op = $first.'-'.$second;
-						$res=$first-$second;
+						$result=$first-$second;
 						break;
 					
 					case 'multiply':
+						if(count($res)<=2) {
+							http_response_code(400);
+							echo 'missing operator(s) for binary operation';
+							header('Content-Type: text');
+							die();
+						}
 						$first=(double)$res[1];
 						$second=(double)$res[2];
 						$op = $first.'*'.$second;
-						$res=$first*$second;
+						$result=$first*$second;
 						break;
 					
 					case 'divide':
+						if(count($res)<=2) {
+							http_response_code(400);
+							echo 'missing operator(s) for binary operation';
+							header('Content-Type: text');
+							die();
+						}
 						$first=(double)$res[1];
 						$second=(double)$res[2];
 						$op = $first.'/'.$second;
-						$res=$first/$second;
+						$result=$first/$second;
+						break;
+					
+					case 'sin':
+						if(count($res)<=1) {
+							http_response_code(400);
+							echo 'missing operator for unary operation';
+							header('Content-Type: text');
+							die();
+						}
+						$num=(double)$res[1];
+						$op='sin('.$res[1].')';
+						$result=sin($num);
 						break;
 					
 					default:
 						http_response_code(404);
-						echo 'Unreconized operation';
+						echo "Unreconized operation:\n".$res[0];
 						die();
 				}
 				header('Contet-Type: text');
-				logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $op, $res);
-				echo $op.'='.$res;
+				logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $op, $result);
+				echo $op.'='.$result;
+				break;
 			}
 			elseif (substr($res,1,5)=='users') {
 				$res=substr($res,6);
