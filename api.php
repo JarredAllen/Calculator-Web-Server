@@ -52,7 +52,7 @@
 				$cmd.=' WHERE UserID = :userid';
 			}
 			else {
-				$cmd.=' WHERE INET6_NTOA(IPAddress) = :userid';
+				$cmd.=' WHERE INET6_NTOA(IPAddress) = :userid AND ISNULL(UserID)';
 			}
 		}
 		if($orderby !== null) {
@@ -127,7 +127,7 @@
 							http_response_code(404);
 							header('Content-Type: text');
 							echo 'Invalid calculation number.';
-							break;
+							die();
 						}
 						else {
 							header('Content-Type: application/json');
@@ -138,8 +138,8 @@
 					else {
 						http_response_code(404);
 						echo "The only valid next URLs are the number of the calculation.\n";
-						echo substr($res, 13);
-						break;
+						// echo substr($res, 13);
+						die();
 					}
 				}
 				header('Content-Type: application/json');
@@ -173,18 +173,96 @@
 				echo getCalculationLog($user, $sortby, $page, $pagesize);
 				break;
 			}
+			elseif (substr($res,1,9)=='calculate') {
+				$res=substr($res,10);
+				if(strlen($res)<=1) {
+					http_response_code(404);
+					echo 'Please specify an action.';
+					header('Content-Type: text');
+					die();
+				}
+				$res=explode('/',substr($res,1));
+				if(strtolower($res[0])=='operations') {
+					$x = new stdClass();
+					$x->add = new stdClass();
+					$x->add->format="%1+%2";
+					$x->add->numbers=2;
+					$x->subtract = new stdClass();
+					$x->subtract->format="%1-%2";
+					$x->subtract->numbers=2;
+					$x->multiply = new stdClass();
+					$x->multiply->format="%1*%2";
+					$x->multiply->numbers=2;
+					$x->divide = new stdClass();
+					$x->divide->format="%1/%2";
+					$x->divide->numbers=2;
+					if(count($res)>1) {
+						$res[1]=strtolower($res[1]);
+						if(isset($x->$res[1])) {
+							$x=$x->$res[1];
+						}
+					}
+					header('Content-Type: application/json');
+					echo json_encode($x);
+					break;
+				}
+				switch(strtolower($res[0])) {
+					case 'add':
+						$first=(double)$res[1];
+						$second=(double)$res[2];
+						$op = $first.'+'.$second;
+						$res=$first+$second;
+						break;
+					
+					case 'subtract':
+						$first=(double)$res[1];
+						$second=(double)$res[2];
+						$op = $first.'-'.$second;
+						$res=$first-$second;
+						break;
+					
+					case 'multiply':
+						$first=(double)$res[1];
+						$second=(double)$res[2];
+						$op = $first.'*'.$second;
+						$res=$first*$second;
+						break;
+					
+					case 'divide':
+						$first=(double)$res[1];
+						$second=(double)$res[2];
+						$op = $first.'/'.$second;
+						$res=$first/$second;
+						break;
+					
+					default:
+						http_response_code(404);
+						echo 'Unreconized operation';
+						die();
+				}
+				header('Contet-Type: text');
+				logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $op, $res);
+				echo $op.'='.$res;
+			}
+			elseif (substr($res,1,5)=='users') {
+				$res=substr($res,6);
+				//echo $res;
+			}
 			elseif (substr($res,1,6)=='userid') {
-				header('Content-Type: text');
+				header('Content-Type: application/json');
+				echo '{"id" : "';
 				if(isLoggedIn()) {
 					echo getUserId();
 				}
 				else {
 					echo $_SERVER['REMOTE_ADDR'];
 				}
+				echo '"}';
 			}
 			else {
 				http_response_code(404);
 				echo 'Unrecognized resource.';
+				die();
 			}
 			break;
 		
@@ -195,18 +273,18 @@
 				if(strlen(substr($res, 13))>1) {
 					 http_response_code(405);
 					 header('Allow: GET');
-					 break;
+					 die();
 				}
 				if(!isset($_POST['entry'])) {
 					http_response_code(400);
 					echo 'Missing Post Parameter: entry';
-					break;
+					die();
 				}
 				$vals=json_decode($_POST['entry']);
 				if(!isset($vals->operation) || !isset($vals->result)) {
 					http_response_code(400);
 					echo 'Incomplete JSON parameter';
-					break;
+					die();
 				}
 				echo json_encode(logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $vals->operation, $vals->result));
 				
@@ -218,11 +296,15 @@
 				header('Location: /api.php/calculations/'.$number);
 				break;
 			}
-			http_response_code(404);
+			else {
+				http_response_code(404);
+				die();
+			}
 			break;
 		
 		default:
 			http_response_code(405);
 			header('Allow: GET, POST');
+			die();
 	}
 ?>

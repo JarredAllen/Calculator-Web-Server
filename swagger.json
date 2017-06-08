@@ -102,12 +102,12 @@
         "operationId" : "get-calculation-calculation_number",
         "produces" : ["applications/json", "text"],
         "parameters" : [
-          {  "name" : "calculation_number",
-            "in" : "path",
-            "description" : "The number of the calculation being returned.",
-            "required" : true,
-            "type" : "integer"
-          }
+			{	"name" : "calculation_number",
+				"in" : "path",
+				"description" : "The number of the calculation being returned.",
+				"required" : true,
+				"type" : "integer"
+			}
         ],
         "responses" : {
           "200" : {
@@ -119,6 +119,44 @@
         }
       }
     },
+	"/calculate/{operation}/{firstNumber}/{secondNumber}" : {
+		"get" : {
+			"tags" : [],
+			"summary" : "Performs the given calculation and gives the result.",
+			"operationId" : "calculate_binary_operation",
+			"produces" : ["text"],
+			"parameters" : [
+				{	"name" : "operation",
+					"in" : "path",
+					"description" : "The name of the operation to execute",
+					"required" : true,
+					"type" : "string"
+				},
+				{	"name" : "firstNumber",
+					"in" : "path",
+					"description" : "The first number on which to operate.",
+					"required" : true,
+					"type" : "number",
+					"format" : "double"
+				},
+				{	"name" : "secondNumber",
+					"in" : "path",
+					"description" : "The second number on which to operate. This is ignored if the operation is unary.",
+					"required" : true,
+					"type" : "number",
+					"format" : "double"
+				}
+			],
+			"responses" : {
+				"200" : {
+					"description" : "Successful, returned the requested operation and the result, formatted in a more user-friendly way (i.e. Add/1/2 becomes 1+2=3)"
+				},
+				"404" : {
+					"description" : "The operation is not recognized, or requires three or more operators."
+				}
+			}
+		}
+	},
     "/userid" : {
       "get" : {
         "tags" : [],
@@ -128,7 +166,7 @@
         "parameters" : [],
         "responses" : {
           "200" : {
-            "description" : "Successful, returned the user's id",
+            "description" : "Successful, returned the user's id"
           }
         }
       }

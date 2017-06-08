@@ -7,6 +7,7 @@
 	<link rel="stylesheet" type="text/css" href="/calculator_style.css">
 
 	<script>
+		
 		function validateInput() {
 			//uncomment the next line to force input to validate
 			//return true;
@@ -45,7 +46,28 @@
 			var one = form.firstnumber.value;
 			var two = form.secondnumber.value;
 			var op  = form.operation.value;
-			var out = 0;
+			
+			function displayAnswer() {
+				var ans = this.responseText.split("=");
+				document.getElementById("answer").innerHTML=ans[1];
+				
+				var table=document.getElementById("history");
+				try {
+					table.deleteRow(10);
+				}
+				catch (err) {
+					//The user does not have ten entries in the table
+					//Don't remove anything, because it will break
+					//Also don't remove this line
+				}
+				var row=table.insertRow(1);
+				row.innerHTML="<td>"+ans[0]+"</td><td>"+ans[1]+"</td>";
+			}
+			var res = new XMLHttpRequest();
+			res.addEventListener("load",displayAnswer);
+			res.open("GET", "/api.php/calculate/"+op+"/"+one+"/"+two);
+			res.send();
+			/*var out = 0;
 			var calc=one+'?'+two;
 			
 			switch(op) {
@@ -88,7 +110,7 @@
 			}
 			var row=table.insertRow(1);
 			row.innerHTML="<td>"+calc+"</td><td>"+out+"</td>";
-			
+			*/
 			//return false, so it doesn't POST on its own
 			return false;
 		}
@@ -112,7 +134,7 @@
 		function loadHistory() {
 			var histreq=new XMLHttpRequest();
 			histreq.addEventListener("load", displayHistory);
-			histreq.open("GET", "/api.php/calculations?page=1&sortby=timestamp&user="+this.responseText);
+			histreq.open("GET", "/api.php/calculations?page=1&sortby=timestamp&user="+JSON.parse(this.responseText).id);
 			histreq.send();
 		}
 		
@@ -128,6 +150,16 @@
 		req.addEventListener("load", onReceiveBanner);
 		req.open("GET", "/backend/banner.php");
 		req.send();
+		
+		var operations=new Object();
+		function loadOperations() {
+			operations=JSON.parse(this.responseText);
+			document.getElementById("debug_stuff").innerHTML=this.responseText;
+		}
+		req=new XMLHttpRequest();
+		req.addEventListener("load", loadOperations);
+		req.open("GET", "/api.php/calculate/operations");
+		req.send();
 	</script>
 </head>
 
@@ -141,18 +173,7 @@
 		<table>
 		<tr><td>First Number: &emsp;&emsp;</td>			<td><input type="text" id="firstnumber" name="firstnumber" autocomplete="off" required autofocus value="<?php echo isset($_POST['firstnumber']) ? $_POST['firstnumber'] : '' ?>"></td></tr>
 		<tr><td>Second Number:&emsp;</td>				<td><input type="text" id="secondnumber" name="secondnumber" autocomplete="off" required value="<?php echo isset($_POST['secondnumber']) ? $_POST['secondnumber'] : '' ?>"></br></td></tr>
-		<tr><td>Operation: &emsp; &emsp; &emsp;</td>	<td><select name="operation" id="operation" value="<?php echo isset($_POST['operation']) ? $_POST['operation'] : '' ?>">
-											<?php
-											$operations=["Add", "Subtract", "Multiply", "Divide"];
-											foreach($operations as $op) {
-												if(isset($_POST['operation'])) {
-													echo "<option" . ($_POST['operation']==$op ? ' selected>' : '>') . $op . '</option>';
-												}
-												else {
-													echo "<option>" . $op . "</option>";
-												}
-											}
-											?></select></td></tr>
+		<tr><td>Operation: &emsp; &emsp; &emsp;</td>	<td><select name="operation" id="operation"></select></td></tr>
 		</table>
 		<input type="submit" value="Calculate!">
 	</form>
@@ -165,4 +186,6 @@
 	</table>
 	
 	<div id="log_response"></div>
+	
+	<div id="debug_stuff"></div>
 </body>
