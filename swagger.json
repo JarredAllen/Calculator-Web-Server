@@ -3,7 +3,7 @@
   "info" : {
     "title" : "Jarred's Calculator",
     "description" : "A simple web calculator that logs what it does.",
-    "version" : "0.1"
+    "version" : "0.2"
   },
   "basePath" : "/api.php/",
   "schemes" : ["http"],
