@@ -1,119 +1,137 @@
 {
-	"swagger" : "2.0",
-	"info" : {
-		"title" : "Jarred's Calculator",
-		"description" : "A simple web calculator that logs what it does.",
-		"version" : "0.1"
-	},
-	"basePath" : "/api.php/",
-	"schemes" : "http",
-	"produces" : ["applications/json", "text/html"],
-	"paths" : {
-		"/calculations" : {
-			"get" : {
-				"tags" : [],
-				"summary" : "Lists all calculations that are logged.",
-				"description" : "Retrieves the logs for calculations, with optional filtering and sorting, and displays them, formatted as JSON",
-				"operationId" : "get-calculations",
-				"produces" : ["applications/json"],
-				"parameters" : [
-					{	"name" : "user",
-						"in" : "query",
-						"description" : "A filter that only looks at data from the given user id or ip address, either one.",
-						"required" : false,
-						"type" : "string"
-					},
-					{	"name" : "orderby",
-						"in" : "query",
-						"description" : "Sorts the data by the given value.",
-						"required" : false,
-						"type" : "string"
-					},
-					{	"name" : "sortby",
-						"in" : "query",
-						"description" : "Sorts the data by the given value. It functions identically to the orderby parameter. If they contradict, behavior is undefined.",
-						"required" : false,
-						"type" : "string"
-					},
-					{	"name" : "order",
-						"in" : "query",
-						"description" : "If orderby or sortby is specified, this may be used to specify which direction to order.",
-						"required" : false,
-						"type" : "string",
-						"enum" : ["asc", "desc"]
-					}
-					{	"name" : "page",
-						"in" : "query",
-						"description" : "Specifies which page number to retrieve. If not specified or negative, it retrieves all values.",
-						"required" : false,
-						"type" : "integer",
-						"format" : "int32"
-					},
-					{	"name" : "pagesize",
-						"in" : "query",
-						"description" : "Specifies the number of entries per page.",
-						"required" : false,
-						"type" : "integer",
-						"format" : "int32",
-						"default" : 10
-					}
-				],
-				"responses" : {
-					200 : {
-						"description" : "Successful, returned the requested JSON",
-					}
-				}
-			},
-			"post" : {
-				"tags" : [],
-				"summary" : "Log that another calculation happened.",
-				"operationId" : "post-calculations",
-				"consumes" : ["application/x-www-form-urlencoded"],
-				"parameters" : [
-					{	"name" : "entry",
-						"in" : "formData",
-						"description" : "JSON-encoded data containing the operation and result and properties of the root object.",
-						"required" : true,
-						"type" : "string",
-						"format" : "json",
-					}
-				],
-				"responses" : {
-					201 : {
-						"description" : "The calculation was successfully logged.",
-						"headers" : {
-							"Location" : {
-								"description" : "The location at which the logged calculation can be reviewed.",
-								"type" : "string",
-								"format" : "uri"
-							}
-						}
-					}
-					400 : {
-						"description" : "Something was wrong with your arguments.",
-						"schema" : {
-							"type" : "string"
-						}
-					}
-				}
-			}
-		},
-		"/userid" : {
-			"get" : {
-				"tags" : [],
-				"summary" : "Responds with the user's userid, if logged in, or the user's ip address, if not.",
-				"operationId" : "get-userid",
-				"produces" : ["text"],
-				"parameters" : {}
-				"responses" : {
-					200 : {
-						"description" : "Successful, returned the user's id",
-						"schema" : {
-							"type" : "string"
-						}
-					}
-				}
-			}
-		}
-	},
+  "swagger" : "2.0",
+  "info" : {
+    "title" : "Jarred's Calculator",
+    "description" : "A simple web calculator that logs what it does.",
+    "version" : "0.1"
+  },
+  "basePath" : "/api.php/",
+  "schemes" : ["http"],
+  "produces" : ["applications/json", "text/html"],
+  "paths" : {
+    "/calculations" : {
+      "get" : {
+        "tags" : [],
+        "summary" : "Lists all calculations that are logged.",
+        "description" : "Retrieves the logs for calculations, with optional filtering and sorting, and displays them, formatted as JSON",
+        "operationId" : "get-calculations",
+        "produces" : ["applications/json"],
+        "parameters" : [
+          {  "name" : "user",
+            "in" : "query",
+            "description" : "A filter that only looks at data from the given user id or ip address, either one.",
+            "required" : false,
+            "type" : "string"
+          },
+          {  "name" : "orderby",
+            "in" : "query",
+            "description" : "Sorts the data by the given value.",
+            "required" : false,
+            "type" : "string"
+          },
+          {  "name" : "sortby",
+            "in" : "query",
+            "description" : "Sorts the data by the given value. It functions identically to the orderby parameter. If they contradict, behavior is undefined.",
+            "required" : false,
+            "type" : "string"
+          },
+          {  "name" : "order",
+            "in" : "query",
+            "description" : "If orderby or sortby is specified, this may be used to specify which direction to order. It must be either ASC or DESC",
+            "required" : false,
+            "type" : "string",
+            "enum" : ["asc", "desc"]
+          },
+          {  "name" : "page",
+            "in" : "query",
+            "description" : "Specifies which page number to retrieve. If not specified or negative, it retrieves all values.",
+            "required" : false,
+            "type" : "integer",
+            "format" : "int32"
+          },
+          {  "name" : "pagesize",
+            "in" : "query",
+            "description" : "Specifies the number of entries per page.",
+            "required" : false,
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 10
+          }
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "Successful, returned the requested JSON"
+          }
+        }
+      },
+      "post" : {
+        "tags" : [],
+        "summary" : "Log that another calculation happened.",
+        "operationId" : "post-calculations",
+        "consumes" : ["application/x-www-form-urlencoded"],
+        "parameters" : [
+          {  "name" : "entry",
+            "in" : "formData",
+            "description" : "JSON-encoded data containing the operation and result and properties of the root object.",
+            "required" : true,
+            "type" : "string",
+            "format" : "json"
+          }
+        ],
+        "responses" : {
+          "201" : {
+            "description" : "The calculation was successfully logged.",
+            "headers" : {
+              "Location" : {
+                "description" : "The location at which the logged calculation can be reviewed.",
+                "type" : "string",
+                "format" : "uri"
+              }
+            }
+          },
+          "400" : {
+            "description" : "Something was wrong with your arguments."
+          }
+        }
+      }
+    },
+    "/calculations/{calculation_number}" : {
+      "get" : {
+        "tags" : [],
+        "summary" : "Responds with info on the given calculation in the log.",
+        "operationId" : "get-calculation-calculation_number",
+        "produces" : ["applications/json", "text"],
+        "parameters" : [
+          {  "name" : "calculation_number",
+            "in" : "path",
+            "description" : "The number of the calculation being returned.",
+            "required" : true,
+            "type" : "integer"
+          }
+        ],
+        "responses" : {
+          "200" : {
+            "description" : "Successfully retrieved the calculation."
+          },
+          "404" :  {
+            "description" : "The requested calculation number could not be found."
+          }
+        }
+      }
+    },
+    "/userid" : {
+      "get" : {
+        "tags" : [],
+        "summary" : "Responds with the user's userid, if logged in, or the user's ip address, if not.",
+        "operationId" : "get-userid",
+        "produces" : ["text"],
+        "parameters" : [],
+        "responses" : {
+          "200" : {
+            "description" : "Successful, returned the user's id",
+          }
+        }
+      }
+    }
+  }
 }
