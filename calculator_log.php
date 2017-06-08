@@ -96,9 +96,9 @@
 <body>
 	<table id="log_table" border="1">
 		<tr>
-			<th onclick="document.getElementById(\'TimestampForm\').submit()">Timestamp</th><th onclick="document.getElementById(\'IPAddressForm\').submit()">IP Address</th>
-			<th onclick="document.getElementById(\'UserIDForm\').submit()">User</th> <th onclick="document.getElementById(\'UserAgentForm\').submit()">User Agent</th>
-			<th onclick="document.getElementById(\'OperationForm\').submit()">Calculation</th><th onclick="document.getElementById(\'ResultForm\').submit()">Result</th>
+			<th onclick="document.getElementById('TimestampForm').submit()">Timestamp</th><th onclick="document.getElementById('IPAddressForm').submit()">IP Address</th>
+			<th onclick="document.getElementById('UserIDForm').submit()">User</th> <th onclick="document.getElementById('UserAgentForm').submit()">User Agent</th>
+			<th onclick="document.getElementById('OperationForm').submit()">Calculation</th><th onclick="document.getElementById('ResultForm').submit()">Result</th>
 		</tr>
 	</div>
 	

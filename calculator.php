@@ -31,13 +31,13 @@
 			histreq.send();
 		}
 		
+		var ureq=new XMLHttpRequest();
+		ureq.addEventListener("load", loadHistory);
+		ureq.open("GET", "/api.php/userid");
+		ureq.send();
+		
 		function onReceiveBanner() {
 			document.getElementById("banner_holder").innerHTML = this.responseText;
-			
-			var ureq=new XMLHttpRequest();
-			ureq.addEventListener("load", loadHistory);
-			ureq.open("GET", "/api.php/userid");
-			ureq.send();
 		}
 		var req=new XMLHttpRequest();
 		req.addEventListener("load", onReceiveBanner);
