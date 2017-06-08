@@ -199,6 +199,9 @@
 					$x->sin = new stdClass();
 					$x->sin->format="sin(%1)";
 					$x->sin->numbers=1;
+					$x->cos = new stdClass();
+					$x->cos->format="cos(%1)";
+					$x->cos->numbers=1;
 					if(count($res)>1) {
 						$res[1]=strtolower($res[1]);
 						if(isset($x->$res[1])) {
@@ -271,6 +274,7 @@
 						break;
 					
 					case 'sin':
+					case 'sine':
 						if(count($res)<=1) {
 							http_response_code(400);
 							echo 'missing operator for unary operation';
@@ -280,6 +284,19 @@
 						$num=(double)$res[1];
 						$op='sin('.$res[1].')';
 						$result=sin($num);
+						break;
+					
+					case 'cos':
+					case 'cosine':
+						if(count($res)<=1) {
+							http_response_code(400);
+							echo 'missing operator for unary operation';
+							header('Content-Type: text');
+							die();
+						}
+						$num=(double)$res[1];
+						$op='cos('.$res[1].')';
+						$result=cos($num);
 						break;
 					
 					default:
