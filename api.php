@@ -18,12 +18,16 @@
 	
 	function getCalculation($num) {
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
-		$cmd = 'SELECT Timestamp, INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result FROM calc_log LIMIT '.$num.',1';
+		$cmd = 'SELECT Timestamp, INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result FROM calc_log LIMIT '.($num-1).',1';
 		$stmt = $conn->prepare($cmd);
 		$stmt->execute();
-		$line=$stmt->fetchAll[0];
-		return json_encode(array($line['Timestamp'], $line['INET6_NTOA(IPAddress)'], intify_id($line['UserID']),
-																				$line['UserAgent'], $line['Operation'], $line['Result']));
+		$response = $stmt->fetchAll();
+		if(isset($response[0])) {
+			$line=$response[0];
+			return json_encode(array($line['Timestamp'], $line['INET6_NTOA(IPAddress)'], intify_id($line['UserID']),
+																					$line['UserAgent'], $line['Operation'], $line['Result']));
+		}
+		return false;
 	}
 	
 	function logCalculation($ipaddress, $userid, $useragent, $operation, $result) {
@@ -76,7 +80,7 @@
 			$cols=array('Timestamp', 'IPAddress', 'UserID', 'UserAgent', 'Operation', 'Result');
 			$orderby=explode(' ', $orderby);
 			$dir=' ASC';
-			if(isset($orderby[1]) and ($orderby[1]=='ASC' or $orderby[1]=='DESC')) {
+			if(isset($orderby[1]) and (strtoupper($orderby[1])=='ASC' or strtoupper($orderby[1])=='DESC')) {
 				$dir=' '.$orderby[1];
 			}
 			elseif ($orderby[0]=='Timestamp') {
@@ -118,9 +122,18 @@
 				if(strlen(substr($res, 13))>1) {
 					$num=substr($res,14);
 					if(is_numeric($num)) {
-						header('ContentType: application/json');
-						echo getCalculation((int)$num);
-						break;
+						$calc = getCalculation((int)$num);
+						if( $calc === false ) {
+							http_response_code(404);
+							header('Content-Type: text');
+							echo 'Invalid calculation number.';
+							break;
+						}
+						else {
+							header('Content-Type: application/json');
+							echo $calc;
+							break;
+						}
 					}
 					else {
 						http_response_code(404);
@@ -195,28 +208,8 @@
 					echo 'Incomplete JSON parameter';
 					break;
 				}
-				echo json_encode(logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $vals->operation, $vals->result));/*
-				$cmd='INSERT INTO calc_log (INET6_NTOA(IPAddress), UserID, UserAgent, Operation, Result) VALUES (:ipaddress, :userid, :useragent, :operation, :result)';
+				echo json_encode(logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $vals->operation, $vals->result));
 				
-				$stmt = $conn->prepare($cmd);
-				$stmt->bindParam(':ipaddress', $_SERVER['REMOTE_ADDR']);
-				if(isLoggedIn()) {
-					$id=getUserId();
-					$stmt->bindParam(':userid', $id);
-				}
-				else {
-					$null=null;
-					$stmt->bindParam(':userid', $null);
-				}
-				if(isset($_SERVER['HTTP_USER_AGENT'])) {
-					$stmt->bindParam(':useragent', $_SERVER['HTTP_USER_AGENT']);
-				}
-				else {
-					$stmt->bindParam(':useragent', 'none');
-				}
-				$stmt->bindParam(':operation', $vals->operation);
-				$stmt->bindParam(':result', $vals->result);
-				$stmt->execute();*/
 				$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 				$stmt = $conn->prepare('SELECT COUNT(*) FROM calc_log;');
 				$stmt->execute();
