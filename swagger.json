@@ -1,247 +1,317 @@
 {
-  "swagger" : "2.0",
-  "info" : {
-    "title" : "Jarred's Calculator",
-    "description" : "A simple web calculator that logs what it does.",
-    "version" : "0.2"
-  },
-  "basePath" : "/api.php/",
-  "schemes" : ["http"],
-  "produces" : ["applications/json", "text/html"],
-  "paths" : {
-    "/calculations" : {
-      "get" : {
-        "tags" : [],
-        "summary" : "Lists all calculations that are logged.",
-        "description" : "Retrieves the logs for calculations, with optional filtering and sorting, and displays them, formatted as JSON",
-        "operationId" : "get-calculations",
-        "produces" : ["applications/json"],
-        "parameters" : [
-          {  "name" : "user",
-            "in" : "query",
-            "description" : "A filter that only looks at data from the given user id or ip address, either one.",
-            "required" : false,
-            "type" : "string"
-          },
-          {  "name" : "orderby",
-            "in" : "query",
-            "description" : "Sorts the data by the given value.",
-            "required" : false,
-            "type" : "string"
-          },
-          {  "name" : "sortby",
-            "in" : "query",
-            "description" : "Sorts the data by the given value. It functions identically to the orderby parameter. If they contradict, behavior is undefined.",
-            "required" : false,
-            "type" : "string"
-          },
-          {  "name" : "order",
-            "in" : "query",
-            "description" : "If orderby or sortby is specified, this may be used to specify which direction to order. It must be either ASC or DESC",
-            "required" : false,
-            "type" : "string",
-            "enum" : ["asc", "desc"]
-          },
-          {  "name" : "page",
-            "in" : "query",
-            "description" : "Specifies which page number to retrieve. If not specified or negative, it retrieves all values.",
-            "required" : false,
-            "type" : "integer",
-            "format" : "int32"
-          },
-          {  "name" : "pagesize",
-            "in" : "query",
-            "description" : "Specifies the number of entries per page.",
-            "required" : false,
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 10
-          }
-        ],
-        "responses" : {
-          "200" : {
-            "description" : "Successful, returned the requested JSON"
-          }
-        }
-      },
-      "post" : {
-        "tags" : [],
-        "summary" : "Log that another calculation happened.",
-        "operationId" : "post-calculations",
-        "consumes" : ["application/x-www-form-urlencoded"],
-        "parameters" : [
-          {  "name" : "entry",
-            "in" : "formData",
-            "description" : "JSON-encoded data containing the operation and result and properties of the root object.",
-            "required" : true,
-            "type" : "string",
-            "format" : "json"
-          }
-        ],
-        "responses" : {
-          "201" : {
-            "description" : "The calculation was successfully logged.",
-            "headers" : {
-              "Location" : {
-                "description" : "The location at which the logged calculation can be reviewed.",
-                "type" : "string",
-                "format" : "uri"
-              }
-            }
-          },
-          "400" : {
-            "description" : "Something was wrong with your arguments."
-          }
-        }
-      }
-    },
-    "/calculations/{calculation_number}" : {
-      "get" : {
-        "tags" : [],
-        "summary" : "Responds with info on the given calculation in the log.",
-        "operationId" : "get-calculation-calculation_number",
-        "produces" : ["applications/json", "text"],
-        "parameters" : [
+	"swagger" : "2.0",
+	"info" : {
+		"title" : "Jarred's Calculator",
+		"description" : "A simple web calculator that logs what it does.",
+		"version" : "0.2"
+	},
+	"basePath" : "/api.php/",
+	"schemes" : ["http"],
+	"produces" : ["applications/json", "text/html"],
+	"paths" : {
+		"/calculations" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Lists all calculations that are logged.",
+				"description" : "Retrieves the logs for calculations, with optional filtering and sorting, and displays them, formatted as JSON",
+				"operationId" : "get-calculations",
+				"produces" : ["applications/json"],
+				"parameters" : [
+					{	"name" : "user",
+						"in" : "query",
+						"description"  :  "A filter that only looks at data from the given user id or ip address, or the current user if it equals 'current'.",
+						"required"  :  false,
+						"type"  :  "string"
+					},
+					{	"name" : "orderby",
+						"in" : "query",
+						"description" : "Sorts the data by the given value.",
+						"required" : false,
+						"type" : "string"
+					},
+					{	"name" : "sortby",
+						"in" : "query",
+						"description" : "Sorts the data by the given value. It functions identically to the orderby parameter. If they contradict, behavior is undefined.",
+						"required" : false,
+						"type" : "string"
+					},
+					{	"name" : "order",
+						"in" : "query",
+						"description" : "If orderby or sortby is specified, this may be used to specify which direction to order. It must be either ASC or DESC",
+						"required" : false,
+						"type" : "string",
+						"enum" : ["asc", "desc"]
+					},
+					{	"name" : "page",
+						"in" : "query",
+						"description" : "Specifies which page number to retrieve. If not specified or negative, it retrieves all values.",
+						"required" : false,
+						"type" : "integer",
+						"format" : "int32"
+					},
+					{	"name" : "pagesize",
+						"in" : "query",
+						"description" : "Specifies the number of entries per page.",
+						"required" : false,
+						"type" : "integer",
+						"format" : "int32",
+						"default" : 10
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "Successful, returned the requested JSON"
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					}
+				}
+			},
+			"post" : {
+				"tags" : [],
+				"summary" : "Log that another calculation happened.",
+				"operationId" : "post-calculations",
+				"consumes" : ["application/x-www-form-urlencoded"],
+				"parameters" : [
+			{	"name" : "entry",
+				"in" : "body",
+				"description" : "JSON-encoded data containing the operation and result and properties of the root object.",
+				"required" : true,
+				"schema" : {
+					"type" : "string",
+					"format" : "json"
+				}
+			}
+				],
+				"responses" : {
+					"201" : {
+						"description" : "The calculation was successfully logged.",
+						"headers" : {
+							"Location" : {
+								"description" : "The location at which the logged calculation can be reviewed.",
+								"type" : "string",
+								"format" : "uri"
+							}
+						}
+					},
+					"400" : {
+						"description" : "Something was wrong with your arguments."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					}
+				}
+			}
+		},
+		"/calculations/{calculation_number}" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Responds with info on the given calculation in the log.",
+				"operationId" : "get-calculation-calculation_number",
+				"produces" : ["applications/json", "text"],
+				"parameters" : [
 			{	"name" : "calculation_number",
 				"in" : "path",
 				"description" : "The number of the calculation being returned.",
 				"required" : true,
 				"type" : "integer"
 			}
-        ],
-        "responses" : {
-          "200" : {
-            "description" : "Successfully retrieved the calculation."
-          },
-          "404" :  {
-            "description" : "The requested calculation number could not be found."
-          }
-        }
-      }
-    },
-	"/calculate/{operation}/{firstNumber}/{secondNumber}" : {
-		"get" : {
-			"tags" : [],
-			"summary" : "Performs the given calculation and gives the result.",
-			"operationId" : "calculate-binary_operator",
-			"produces" : ["text"],
-			"parameters" : [
-				{	"name" : "operation",
-					"in" : "path",
-					"description" : "The name of the operation to execute",
-					"required" : true,
-					"type" : "string"
-				},
-				{	"name" : "firstNumber",
-					"in" : "path",
-					"description" : "The first number on which to operate.",
-					"required" : true,
-					"type" : "number",
-					"format" : "double"
-				},
-				{	"name" : "secondNumber",
-					"in" : "path",
-					"description" : "The second number on which to operate. This is ignored if the operation is unary.",
-					"required" : true,
-					"type" : "number",
-					"format" : "double"
+				],
+				"responses" : {
+					"200" : {
+						"description" : "Successfully retrieved the calculation."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					},
+					"404" : 	{
+						"description" : "The requested calculation number could not be found."
+					}
 				}
-			],
-			"responses" : {
-				"200" : {
-					"description" : "Successful, returned the requested operation and the result, formatted in a more user-friendly way (i.e. Add/1/2 becomes 1+2=3)"
-				},
-				"400" : {
-					"description" : "The operation requires three or more operators."
-				},
-				"404" : {
-					"description" : "The operation is not recognized."
+			}
+		},
+		"/calculate/{operation}/{firstNumber}/{secondNumber}" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Performs the given calculation and gives the result.",
+				"operationId" : "calculate-binary_operator",
+				"produces" : ["text", "applications/json"],
+				"parameters" : [
+					{	"name" : "operation",
+						"in" : "path",
+						"description" : "The name of the operation to execute",
+						"required" : true,
+						"type" : "string"
+					},
+					{	"name" : "firstNumber",
+						"in" : "path",
+						"description" : "The first number on which to operate.",
+						"required" : true,
+						"type" : "number",
+						"format" : "double"
+					},
+					{	"name" : "secondNumber",
+						"in" : "path",
+						"description" : "The second number on which to operate. This is ignored if the operation is unary.",
+						"required" : true,
+						"type" : "number",
+						"format" : "double"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "Successful, returned the requested operation and the result, formatted in a more user-friendly way (i.e. Add/1/2 becomes 1+2=3)"
+					},
+					"400" : {
+						"description" : "The operation requires three or more operators."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					},
+					"404" : {
+						"description" : "The operation is not recognized."
+					}
+				}
+			}
+		},
+		"/calculate/{operation}/{number}" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Performs the given calculation and gives the result.",
+				"operationId" : "calculate-unary_operator",
+				"produces" : ["text", "applications/json"],
+				"parameters" : [
+					{	"name" : "operation",
+						"in" : "path",
+						"description" : "The name of the operation to execute",
+						"required" : true,
+						"type" : "string"
+					},
+					{	"name" : "number",
+						"in" : "path",
+						"description" : "The number on which to apply the unary operator.",
+						"required" : true,
+						"type" : "number",
+						"format" : "double"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "Successful, returned the requested operation and the result, formatted in a more user-friendly way (i.e. Add/1/2 becomes 1+2=3)"
+					},
+					"400" : {
+						"description" : "The operation requires two or more operators."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					},
+					"404" : {
+						"description" : "The operation is not recognized."
+					}
+				}
+			}
+		},
+		"/calculate/operations" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Returns a list of the operations and some info about them.",
+				"operationId" : "get-calculate-list",
+				"produces" : ["applications/json"],
+				"parameters" : [],
+				"responses" : {
+					"200" : {
+						"description" : "The requested list has been returned."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					}
+				}
+			}
+		},
+		"/calculate/operations/{operationName}" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Returns a list of the operations and some info about them.",
+				"operationId" : "get-calculate-specific_operation",
+				"produces" : ["applications/json"],
+				"parameters" : [
+					{	"name" : "operationName",
+						"in" : "path",
+						"description" : "The specific operation to return info about.",
+						"required" : true,
+						"type" : "string"
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "The requested list has been returned."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					}
+				}
+			}
+		},
+		"/login" : {
+			"post" : {
+				"tags" : [],
+				"summary" : "Logs the user into their account given the password and either the userid or the email.",
+				"operationId" : "login",
+				"produces" : ["text"],
+				"parameters" : [
+					{	"name" : "credentials",
+						"in" : "body",
+						"description" : "A JSON-encoded object with login credentials",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "JSON"
+						}
+					}
+				],
+				"responses" : {
+					"204" : {
+						"description" : "The user has successfully logged in."
+					},
+					"400" : {
+						"description" : "The credentials were either not supplied or invalid. The response will specify which one."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					}
+				}
+			}
+		},
+		"/token" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Assigns the user a session token, puts it in the session data, and returns it to the user. This token must be used for the rest of the api.",
+				"operationId" : "get-token",
+				"produces" : ["applications/json"],
+				"parameters" : [],
+				"responses" : {
+					"200" : {
+						"description" : "The user's token has been successfully generated and returned."
+					}
+				}
+			}
+		},
+		"/userid" : {
+			"get" : {
+				"tags" : [],
+				"summary" : "Responds with the user's userid, if logged in, or the user's ip address, if not.",
+				"operationId" : "get-userid",
+				"produces" : ["text"],
+				"parameters" : [],
+				"responses" : {
+					"200" : {
+						"description" : "Successful, returned the user's id"
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					}
 				}
 			}
 		}
-	},
-	"/calculate/{operation}/{number}" : {
-		"get" : {
-			"tags" : [],
-			"summary" : "Performs the given calculation and gives the result.",
-			"operationId" : "calculate-unary_operator",
-			"produces" : ["text"],
-			"parameters" : [
-				{	"name" : "operation",
-					"in" : "path",
-					"description" : "The name of the operation to execute",
-					"required" : true,
-					"type" : "string"
-				},
-				{	"name" : "number",
-					"in" : "path",
-					"description" : "The number on which to apply the unary operator.",
-					"required" : true,
-					"type" : "number",
-					"format" : "double"
-				}
-			],
-			"responses" : {
-				"200" : {
-					"description" : "Successful, returned the requested operation and the result, formatted in a more user-friendly way (i.e. Add/1/2 becomes 1+2=3)"
-				},
-				"400" : {
-					"description" : "The operation requires two or more operators."
-				},
-				"404" : {
-					"description" : "The operation is not recognized."
-				}
-			}
-		}
-	},
-	"/calculate/operations" : {
-		"get" : {
-			"tags" : [],
-			"summary" : "Returns a list of the operations and some info about them.",
-			"operationId" : "get-calculate-list",
-			"produces" : ["applications/json"],
-			"parameters" : [],
-			"responses" : {
-				"200" : {
-					"description" : "The requested list has been returned."
-				}
-			}
-		}
-	},
-	"/calculate/operations/{operationName}" : {
-		"get" : {
-			"tags" : [],
-			"summary" : "Returns a list of the operations and some info about them.",
-			"operationId" : "get-calculate-specific_operation",
-			"produces" : ["applications/json"],
-			"parameters" : [
-				{	"name" : "operationName",
-					"in" : "path",
-					"description" : "The specific operation to return info about.",
-					"required" : true,
-					"type" : "string"
-				}
-			],
-			"responses" : {
-				"200" : {
-					"description" : "The requested list has been returned."
-				}
-			}
-		}
-	},
-    "/userid" : {
-      "get" : {
-        "tags" : [],
-        "summary" : "Responds with the user's userid, if logged in, or the user's ip address, if not.",
-        "operationId" : "get-userid",
-        "produces" : ["text"],
-        "parameters" : [],
-        "responses" : {
-          "200" : {
-            "description" : "Successful, returned the user's id"
-          }
-        }
-      }
-    }
-  }
+	}
 }

@@ -1,5 +1,24 @@
 <?php
+	$nosetCookie=true;
+	
 	include 'myphpheader.php';
+	
+	function lacksValidCredentials() {
+		if(isset($_SESSION['token'])) {
+			return time()>getSessionCookieExpiration($_SESSION['token']);
+		}
+		elseif (isset($_COOKIE['User_Session_ID'])) {
+			return time()>getSessionCookieExpiration($_COOKIE['User_Session_ID']);
+		}
+		return true;
+	}
+	
+	if(lacksValidCredentials() and (substr($_SERVER['REQUEST_URI'],0,14)!='/api.php/token')) {
+		header('Content-Type: text');
+		http_response_code(403);
+		echo 'You need to get a token.';
+		die();
+	}
 	
 	function intify_id($id) {
 		if(strlen($id)>0) {
@@ -115,6 +134,21 @@
 		return json_encode($calculations);
 	}
 	
+	function isValidLogin($email, $password) {
+		$cmd = 'SELECT email FROM users WHERE email=:email AND password=SHA2(:password, 256)';
+		$conn = new PDO("mysql:host=localhost;dbname=mysql", view_username, view_password);
+		$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+		$stmt = $conn->prepare($cmd);
+		$stmt->bindParam(':email', $email);
+		$hashpass = $password.' '.$email;
+		$stmt->bindParam(':password', $hashpass);
+		$stmt->execute();
+		
+		$blah = $stmt->fetchAll();
+		
+		return isset($blah[0][0]);
+	}
+	
 	switch($_SERVER['REQUEST_METHOD']) {
 		case 'GET':
 			$res=explode('?', followingString($_SERVER['REQUEST_URI'], 'api.php'), 2)[0];
@@ -149,6 +183,14 @@
 				$pagesize=10;
 				if(isset($_GET['user'])) {
 					$user=$_GET['user'];
+					if(strtolower($user)=='current') {
+						if(isLoggedIn()) {
+							$user=getUserId();
+						}
+						else {
+							$user=$_SERVER['REMOTE_ADDR'];
+						}
+					}
 				}
 				if(isset($_GET['sortby']) || isset($_GET['orderby'])) {
 					if(isset($_GET['sortby'])) {
@@ -184,24 +226,28 @@
 				$res=explode('/',substr($res,1));
 				if(strtolower($res[0])=='operations') {
 					$x = new stdClass();
-					$x->add = new stdClass();
+					$x->add = new stdClass();		//addition operator
 					$x->add->format="%1+%2";
 					$x->add->numbers=2;
-					$x->subtract = new stdClass();
+					$x->subtract = new stdClass();	//subtraction operator
 					$x->subtract->format="%1-%2";
 					$x->subtract->numbers=2;
-					$x->multiply = new stdClass();
+					$x->multiply = new stdClass();	//multiplication operator
 					$x->multiply->format="%1*%2";
 					$x->multiply->numbers=2;
-					$x->divide = new stdClass();
+					$x->divide = new stdClass();	//division operator
 					$x->divide->format="%1/%2";
 					$x->divide->numbers=2;
-					$x->sin = new stdClass();
+					$x->sin = new stdClass();		//sine operator
 					$x->sin->format="sin(%1)";
 					$x->sin->numbers=1;
-					$x->cos = new stdClass();
+					$x->cos = new stdClass();		//cosine operator
 					$x->cos->format="cos(%1)";
 					$x->cos->numbers=1;
+					$x->tan = new stdClass();		//tangent operator
+					$x->tan->format="tan(%1)";
+					$x->tan->numbers=1;
+					$x->tan->requiredCredentials="login";
 					if(count($res)>1) {
 						$res[1]=strtolower($res[1]);
 						if(isset($x->$res[1])) {
@@ -299,14 +345,32 @@
 						$result=cos($num);
 						break;
 					
+					case 'tan':
+					case 'tangent':
+						if(getUsername()==null) {
+							http_response_code(403);
+							echo 'Please log in to access computationally difficult functions.';
+							header('Content-Type: text');
+							die();
+						}
+						if(count($res)<=1) {
+							http_response_code(400);
+							echo 'missing operator for unary operation';
+							header('Content-Type: text');
+							die();
+						}
+						$num=(double)$res[1];
+						$op='tan('.$res[1].')';
+						$result=tan($num);
+						break;
 					default:
 						http_response_code(404);
 						echo "Unreconized operation:\n".$res[0];
 						die();
 				}
-				header('Contet-Type: text');
+				header('Content-Type: application/json');
 				logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $op, $result);
-				echo $op.'='.$result;
+				echo '{ "operation" : "'.$op.'", "result":"'.$result.'"}';
 				break;
 			}
 			elseif (substr($res,1,5)=='users') {
@@ -324,6 +388,28 @@
 				}
 				echo '"}';
 			}
+			elseif (substr($res, 1, 5)=='token') {
+				header('Content-Type: application/json');
+				if(isset($_SESSION['token'])) {
+					echo '{ "token" : "'.$_SESSION['token'].'" }';
+				}
+				elseif(isset($_COOKIE['User_Session_ID'])) {
+					$_SESSION['token']=$_COOKIE['User_Session_ID'];
+					echo '{ "token" : "'.$_COOKIE['User_Session_ID'].'" }';
+				}
+				else {
+					$token=guid();
+					assignCookie('User_Session_ID', $token, 14);
+					$_SESSION['token']=$token;
+					echo '{ "token" : "'.$token.'" }';
+				}
+				break;
+			}
+			elseif ((substr($res, 1, 5)=='login') or (substr($res, 1, 6)=='logout')) {
+				http_response_code(405);
+				header('Allow: POST');
+				die();
+			}
 			else {
 				http_response_code(404);
 				echo 'Unrecognized resource.';
@@ -340,12 +426,7 @@
 					 header('Allow: GET');
 					 die();
 				}
-				if(!isset($_POST['entry'])) {
-					http_response_code(400);
-					echo 'Missing Post Parameter: entry';
-					die();
-				}
-				$vals=json_decode($_POST['entry']);
+				$vals=json_decode(file_get_contents('php://input'));
 				if(!isset($vals->operation) || !isset($vals->result)) {
 					http_response_code(400);
 					echo 'Incomplete JSON parameter';
@@ -359,6 +440,42 @@
 				$number = $stmt->fetchAll()[0][0];
 				http_response_code(201);
 				header('Location: /api.php/calculations/'.$number);
+				break;
+			}
+			elseif (substr($res, 1, 5)=='login') {
+				$creds=json_decode(file_get_contents('php://input'));
+				if((!isset($creds->email) and !isset($creds->userid)) or !isset($creds->password)) {
+					http_response_code(400);
+					header('Content-Type: text');
+					echo 'Insufficient login credentials.';
+					die();
+				}
+				if(isset($creds->email)) {
+					$email=$creds->email;
+				}
+				else {
+					$email=getUserById($creds->userid);
+				}
+				$password=$creds->password;
+				if(isValidLogin($email, $password)) {
+					login($creds->email);
+					http_response_code(204);
+					break;
+				}
+				else {
+					http_response_code(400);
+					echo 'invalid login credentials';
+					die();
+				}
+			}
+			elseif (substr($res, 1, 6)=='logout') {
+				header('Content-Type: text');
+				if(isLoggedIn()) {
+					logout();
+				}
+				else {
+					echo 'You were not logged in.';
+				}
 				break;
 			}
 			else {

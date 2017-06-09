@@ -23,7 +23,7 @@
 			$stmt->execute();
 			if($stmt->fetchAll()[0][0] == 0) {
 				//give it to the user			
-				setcookie($name, $value, $expiration);
+				setcookie($name, $value, $expiration, '/');
 				$_COOKIE['User_Session_ID']=$value;
 				//update the cookie database
 				$cmd = 'INSERT INTO session_cookies (cookie, expire) VALUES ( :value , :expiration )';
@@ -36,7 +36,7 @@
 			}
 		}
 		else {
-			setcookie($name, $value, $expiration);
+			setcookie($name, $value, $expiration, '/');
 		}
 	}
 
@@ -48,13 +48,11 @@
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':cookie', $cookie);
 		$stmt->execute();
-		
-		try {
-			$time = $stmt->fetchAll()[0][0];
-			// echo $time;
+		$time = $stmt->fetchAll()[0][0];
+		if(isset($time[0][0])) {
 			return $time;
 		}
-		catch(Exception $e) {
+		else {
 			//The cookie does not exist, so it returns a time guaranteed to be in the past.
 			return 955627200;
 		}
@@ -72,15 +70,16 @@
 		$stmt->bindParam(':time', $time);
 		$stmt->execute();
 	}
-	
-	if(!isset($_COOKIE['User_Session_ID'])) {
-		//the user lacks a cookie
-		assignCookie('User_Session_ID', guid(), 14);
-	}
-	if(time()>getSessionCookieExpiration($_COOKIE['User_Session_ID'])) {
-		//the user tried to use an expired cookie
-		assignCookie('User_Session_ID', guid(), 14);
-		clearOldCookies();
+	if(!isset($nosetCookie) or !$nosetCookie) {
+		if(!isset($_COOKIE['User_Session_ID'])) {
+			//the user lacks a cookie
+			assignCookie('User_Session_ID', guid(), 14);
+		}
+		if(time()>getSessionCookieExpiration($_COOKIE['User_Session_ID'])) {
+			//the user tried to use an expired cookie
+			assignCookie('User_Session_ID', guid(), 14);
+			clearOldCookies();
+		}
 	}
 	
 	function logout() {
@@ -105,7 +104,12 @@
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
-		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		if(isset($_COOKIE['User_Session_ID'])) {
+			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		}
+		else {
+			$stmt->bindParam(':cookie', $_SESSION["token"]);
+		}
 		$stmt->execute();
 		$email=$stmt->fetchAll()[0][0];
 		

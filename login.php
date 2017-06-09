@@ -16,6 +16,22 @@
 		req.addEventListener("load", displayBanner);
 		req.open("GET", "/backend/banner.php");
 		req.send();
+		
+		function processLogin() {
+			var form=document.getElementById("login_form");
+			var params='{ "email" : "'+form.email.value+'", "password" : "'+form.password.value+'" }';
+			function processLoginReply() {
+				if(this.status==204) {
+					location.href="<?php if(isset($_GET['redirect'])){ echo $_GET['redirect']; } else{ echo '/clientcalc.php'; } ?>"
+				}
+			}
+			var lr=new XMLHttpRequest();
+			lr.addEventListener("load", processLoginReply);
+			lr.open("POST", "/api.php/login");
+			lr.send(params);
+			
+			return false;
+		}
 	</script>
 </head>
 
@@ -29,14 +45,7 @@
 		?></p>
 		<p>Please input your e-mail address and password to log in.</p>
 		<p id="errors"><?php if(isset($_GET['invalid'])){ echo 'Invalid username or password.';} if(isset($_GET['failed'])){echo 'Unknown login function error.';}?></p>
-		<form id="login_form" method="POST" action="/backend/login_process.php<?php 
-																					if(isset($_SERVER['HTTP_REFERER']) && strstr(substr($_SERVER['HTTP_REFERER'], strstr($_SERVER['HTTP_REFERER'], '//')+2), $_SERVER['HTTP_HOST'])==0) {
-																							echo '?redirect='.urlencode($_SERVER['HTTP_REFERER']);
-																					}
-																					else {
-																						echo '?redirect=/';
-																					}
-																			  ?>">
+		<form id="login_form" onsubmit="return processLogin()" method="GET" action="/login.php">
 				<div class="input_row"><p>E-mail: </p><input name="email" type="email" required></div>
 				<div class="input_row"><p>Password: </p><input name="password" type="password" required></div>
 				<input type="Submit" value="Login">

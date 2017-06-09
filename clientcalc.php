@@ -12,7 +12,15 @@
 			//return true;
 			//check valid input, to ease the user experience
 			var form = document.getElementById("input");
-			document.getElementById("input_error_display").innerHTML="";
+			input_error_display=document.getElementById("input_error_display");
+			<?php
+				if(!isLoggedIn()) {
+					echo 'if(input_error_display.innerHTML==="You must be logged in to use this operation.") {';
+					echo '	return false;';
+					echo '}';
+				}
+			?>
+			input_error_display.innerHTML="";
 			
 			var errors=false;
 			
@@ -26,7 +34,7 @@
 			
 			return !errors;
 		}
-		
+				
 		function displayLogResponse() {
 			document.getElementById("log_response").innerHTML = this.responseText;
 		}
@@ -45,8 +53,8 @@
 			var op  = form.operation.value;
 			
 			function displayAnswer() {
-				var ans = this.responseText.split("=");
-				document.getElementById("answer").innerHTML=ans[1];
+				var ans = JSON.parse(this.responseText);
+				document.getElementById("answer").innerHTML=ans.result;
 				
 				var table=document.getElementById("history");
 				try {
@@ -57,7 +65,7 @@
 					//Don't remove anything, because it will break
 				}
 				var row=table.insertRow(1);
-				row.innerHTML="<td>"+ans[0]+"</td><td>"+ans[1]+"</td>";
+				row.innerHTML="<td>"+ans.operation+"</td><td>"+ans.result+"</td>";
 			}
 			var res = new XMLHttpRequest();
 			res.addEventListener("load",displayAnswer);
@@ -88,17 +96,10 @@
 			}
 		}
 		
-		function loadHistory() {
-			var histreq=new XMLHttpRequest();
-			histreq.addEventListener("load", displayHistory);
-			histreq.open("GET", "/api.php/calculations?page=1&sortby=timestamp&user="+JSON.parse(this.responseText).id);
-			histreq.send();
-		}
-		
-		var ureq=new XMLHttpRequest();
-		ureq.addEventListener("load", loadHistory);
-		ureq.open("GET", "/api.php/userid");
-		ureq.send();
+		var histreq=new XMLHttpRequest();
+		histreq.addEventListener("load", displayHistory);
+		histreq.open("GET", "/api.php/calculations?page=1&sortby=timestamp&user=current");
+		histreq.send();
 		
 		function onReceiveBanner() {
 			document.getElementById("banner_holder").innerHTML = this.responseText;
@@ -115,6 +116,12 @@
 			for(op in operations) {
 				opDropdown.innerHTML+="<option id=\"operation_"+op+"_option\">"+op.charAt(0).toUpperCase()+op.slice(1)+"</option>";
 				document.getElementById("operation_"+op+"_option").setAttribute("data-number", ""+operations[op].numbers);
+				if(typeof operations[op].requiredCredentials !== undefined) {
+					document.getElementById("operation_"+op+"_option").setAttribute("data-required-credentials", ""+operations[op].requiredCredentials);
+				}
+				else {
+					document.getElementById("operation_"+op+"_option").setAttribute("data-required-credentials", "None");
+				}
 			}
 			adjustFormSize();
 			// document.getElementById("debug_stuff").innerHTML=this.responseText;
@@ -138,6 +145,16 @@
 				row.insertCell(0).innerHTML = 'Operand #'+i;
 				row.insertCell(1).innerHTML = '<input type="text" id="operand'+i+'" name="operand'+i+'" autocomplete="off" required>';
 			}
+			<?php
+				if(!isLoggedIn()) {
+					echo 'if(option.getAttribute("data-required-credentials")==="login") {';
+					echo '	input_error_display.innerHTML="You must be logged in to use this operation.";';
+					echo '}';
+					echo 'else {';
+					echo '	input_error_display.innerHTML="";';
+					echo '}';
+				}
+			?>
 		}
 	</script>
 </head>

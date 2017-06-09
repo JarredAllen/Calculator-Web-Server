@@ -1,5 +1,6 @@
 <?php
 	echo 'This should not be used anymore, see the api.';
+	http_response_code(410);
 	die();
 	
 	include '../myphpheader.php';
