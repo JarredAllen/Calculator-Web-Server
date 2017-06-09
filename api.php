@@ -3,9 +3,18 @@
 	
 	include 'myphpheader.php';
 	
+	$body=json_decode(file_get_contents('php://input'));
+	if(isset($body->token)) {
+		$token=$body->token;
+	}
+	else {
+		$token=null;
+	}
+	
 	function lacksValidCredentials() {
-		if(isset($_SESSION['token'])) {
-			return time()>getSessionCookieExpiration($_SESSION['token']);
+		global $token;
+		if($token!=null) {
+			return time()>getSessionCookieExpiration($body->token);
 		}
 		elseif (isset($_COOKIE['User_Session_ID'])) {
 			return time()>getSessionCookieExpiration($_COOKIE['User_Session_ID']);
@@ -150,7 +159,7 @@
 	}
 	
 	switch($_SERVER['REQUEST_METHOD']) {
-		case 'GET':
+		case 'POST':
 			$res=explode('?', followingString($_SERVER['REQUEST_URI'], 'api.php'), 2)[0];
 			if(substr($res, 1, 12) == 'calculations') {
 				if(strlen(substr($res, 13))>1) {
@@ -390,7 +399,7 @@
 			}
 			elseif (substr($res, 1, 5)=='token') {
 				header('Content-Type: application/json');
-				if(isset($_SESSION['token'])) {
+				if(isset($body->token)) {
 					echo '{ "token" : "'.$_SESSION['token'].'" }';
 				}
 				elseif(isset($_COOKIE['User_Session_ID'])) {
@@ -400,65 +409,26 @@
 				else {
 					$token=guid();
 					assignCookie('User_Session_ID', $token, 14);
-					$_SESSION['token']=$token;
 					echo '{ "token" : "'.$token.'" }';
 				}
 				break;
 			}
-			elseif ((substr($res, 1, 5)=='login') or (substr($res, 1, 6)=='logout')) {
-				http_response_code(405);
-				header('Allow: POST');
-				die();
-			}
-			else {
-				http_response_code(404);
-				echo 'Unrecognized resource.';
-				die();
-			}
-			break;
-		
-		
-		case 'POST':
-			$res=explode('?', followingString($_SERVER['REQUEST_URI'], 'api.php'), 2)[0];
-			if(substr($res, 1, 12) == 'calculations') {
-				if(strlen(substr($res, 13))>1) {
-					 http_response_code(405);
-					 header('Allow: GET');
-					 die();
-				}
-				$vals=json_decode(file_get_contents('php://input'));
-				if(!isset($vals->operation) || !isset($vals->result)) {
-					http_response_code(400);
-					echo 'Incomplete JSON parameter';
-					die();
-				}
-				echo json_encode(logCalculation($_SERVER['REMOTE_ADDR'], getUserId(), $_SERVER['HTTP_USER_AGENT'], $vals->operation, $vals->result));
-				
-				$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
-				$stmt = $conn->prepare('SELECT COUNT(*) FROM calc_log;');
-				$stmt->execute();
-				$number = $stmt->fetchAll()[0][0];
-				http_response_code(201);
-				header('Location: /api.php/calculations/'.$number);
-				break;
-			}
 			elseif (substr($res, 1, 5)=='login') {
-				$creds=json_decode(file_get_contents('php://input'));
-				if((!isset($creds->email) and !isset($creds->userid)) or !isset($creds->password)) {
+				if((!isset($body->email) and !isset($body->userid)) or !isset($body->password)) {
 					http_response_code(400);
 					header('Content-Type: text');
 					echo 'Insufficient login credentials.';
 					die();
 				}
-				if(isset($creds->email)) {
-					$email=$creds->email;
+				if(isset($body->email)) {
+					$email=$body->email;
 				}
 				else {
-					$email=getUserById($creds->userid);
+					$email=getUserById($body->userid);
 				}
-				$password=$creds->password;
+				$password=$body->password;
 				if(isValidLogin($email, $password)) {
-					login($creds->email);
+					login($body->email);
 					http_response_code(204);
 					break;
 				}
@@ -486,7 +456,7 @@
 		
 		default:
 			http_response_code(405);
-			header('Allow: GET, POST');
+			header('Allow: POST');
 			die();
 	}
 ?>

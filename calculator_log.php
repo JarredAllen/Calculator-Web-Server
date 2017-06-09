@@ -13,6 +13,16 @@
 		$stmt->execute();
 		return $stmt->fetchAll()[0][0];
 	}
+	
+	if(!hasAdminAccess()) {
+		http_response_code(403);
+		echo 'Please <a href="/login.php?redirect=/calculator_log.php&logout">log in</a> as an admin to continue.';
+		if(isLoggedIn()) {
+			echo ' You do not have admin access with your account.';
+		}
+		echo ' '.getUserId(null);
+		die();
+	}
 ?>
 <!DOCTYPE html>
 
@@ -85,7 +95,7 @@
 		
 		var req=new XMLHttpRequest();
 		req.addEventListener("load", onReceive);
-		req.open("GET", "/api.php/calculations?page="+num+"<?php if(isset($_POST['sortby'])){ echo $_POST['sortby'].'"';} else{ echo '"';} ?>);
+		req.open("POST", "/api.php/calculations?page="+num+"<?php if(isset($_POST['sortby'])){ echo $_POST['sortby'].'"';} else{ echo '"';} ?>);
 		req.send();
 	}
 	
@@ -112,11 +122,11 @@
 	</div>
 	
 	<div class="hidden">
-		<form id="TimestampForm" method="post"> <input type="hidden" name="sortby" value="Timestamp DESC"> </form>
-		<form id="IPAddressForm" method="post"> <input type="hidden" name="sortby" value="IPAddress"> </form>
-		<form id="UserIDForm" method="post"> <input type="hidden" name="sortby" value="UserID"> </form>
-		<form id="UserAgentForm" method="post"> <input type="hidden" name="sortby" value="UserAgent"> </form>
-		<form id="OperationForm" method="post"> <input type="hidden" name="sortby" value="Operation"> </form>
-		<form id="ResultForm" method="post"> <input type="hidden" name="sortby" value="Result"> </form>
+		<form id="TimestampForm" method="post"> <input type="hidden" name="sortby" value="&orderby=Timestamp&order=DESC"> </form>
+		<form id="IPAddressForm" method="post"> <input type="hidden" name="sortby" value="&orderby=IPAddress"> </form>
+		<form id="UserIDForm"    method="post"> <input type="hidden" name="sortby" value="&orderby=UserID"> </form>
+		<form id="UserAgentForm" method="post"> <input type="hidden" name="sortby" value="&orderby=UserAgent"> </form>
+		<form id="OperationForm" method="post"> <input type="hidden" name="sortby" value="&orderby=Operation"> </form>
+		<form id="ResultForm"    method="post"> <input type="hidden" name="sortby" value="&orderby=Result"> </form>
 	</div>
 </body>

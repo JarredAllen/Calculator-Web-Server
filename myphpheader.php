@@ -82,33 +82,51 @@
 		}
 	}
 	
-	function logout() {
+	function logout($token = null) {
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
 		$cmd = 'UPDATE session_cookies SET Email=null WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
-		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		if($token===null) {
+			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		}
+		else {
+			$stmt->bindParam(':cookie', $token);
+		}
 		$stmt->execute();
 		echo 'You have been logged out.';
 	}
 	
-	function login($email) {
+	function login($email, $token=null) {
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
 		$cmd = 'UPDATE session_cookies SET Email=:email WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':email', $email);
-		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
-		$stmt->execute();
-	}
-	
-	function getUsername() {
-		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
-		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
-		$stmt = $conn->prepare($cmd);
-		if(isset($_COOKIE['User_Session_ID'])) {
+		if($token===null) {
 			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
 		}
 		else {
-			$stmt->bindParam(':cookie', $_SESSION["token"]);
+			$stmt->bindParam(':cookie', $token);
+		}
+		$stmt->execute();
+	}
+	
+	$current_user_username = null;
+	function getUsername($token = null) {
+		global $current_user_username;
+		if($current_user_username !== null) {
+			if(current_user_username==="") {
+				return null;
+			}
+			return $current_user_username;
+		}
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
+		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
+		$stmt = $conn->prepare($cmd);
+		if($token === null) {
+			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		}
+		else {
+			$stmt->bindParam(':cookie', $token);
 		}
 		$stmt->execute();
 		$email=$stmt->fetchAll()[0][0];
@@ -120,16 +138,31 @@
 		
 		$val = $stmt->fetchAll();
 		if(isset($val[0][0])) {
+			$current_user_username=$val[0][0];
 			return $val[0][0];
 		}
+		$current_user_username="";
 		return null;
 	}
 	
-	function getUserID() {
+	$current_user_id=null;
+	function getUserID($token=null) {
+		global $current_user_id;
+		if($current_user_id !== null) {
+			if($current_user_id<0) {
+				return null;
+			}
+			return $current_user_id;
+		}
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
-		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		if($token !== null) {
+			$stmt->bindParam(':cookie', $token);
+		}
+		else {
+			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		}
 		$stmt->execute();
 		$email=$stmt->fetchAll()[0][0];
 		
@@ -140,8 +173,10 @@
 		
 		$val = $stmt->fetchAll();
 		if(isset($val[0][0])) {
+			$current_user_id=$val[0][0];
 			return $val[0][0];
 		}
+		$current_user_id=-1;
 		return null;
 	}
 	
@@ -155,13 +190,44 @@
 		return $username;
 	}
 	
-	function isLoggedIn() {
+	function getUserIdentifier($token=null) {
+		//this is the user's id if logged in, or the 
+		$id = getUserID($token);
+		if($id===null) {
+			return $_SERVER['REMOTE_ADDR'];
+		}
+		else {
+			return $id;
+		}
+	}
+	
+	$is_logged_in=null;
+	function isLoggedIn( $token = null) {
+		global $is_logged_in;
+		if($is_logged_in) {
+			//warning: This assumes that the token is kept constant and equal to the cookie.
+			return $is_logged_in;
+		}
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
-		$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		if($token !== null) {
+			$stmt->bindParam(':cookie', $token);
+		}
+		else {
+			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		}
 		$stmt->execute();
 		
-		return $stmt->fetchAll()[0][0]!=null;
+		$is_logged_in = ($stmt->fetchAll()[0][0]!==null);
+		return $is_logged_in;
+	}
+	
+	function hasAdminAccess( $token = null ) {
+		if (getUserID($token)==1) {
+			//do not replace that with ===, because getUserID returns a string
+			return true;
+		}
+		return $_SERVER['REMOTE_ADDR']==="::1" or $_SERVER['REMOTE_ADDR']==="127.0.0.1";
 	}
 ?>

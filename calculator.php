@@ -24,17 +24,10 @@
 			}
 		}
 		
-		function loadHistory() {
-			var histreq=new XMLHttpRequest();
-			histreq.addEventListener("load", displayHistory);
-			histreq.open("GET", "/api.php/calculations?page=1&sortby=timestamp&user="+this.responseText);
-			histreq.send();
-		}
-		
-		var ureq=new XMLHttpRequest();
-		ureq.addEventListener("load", loadHistory);
-		ureq.open("GET", "/api.php/userid");
-		ureq.send();
+		var histreq=new XMLHttpRequest();
+		histreq.addEventListener("load", displayHistory);
+		histreq.open("POST", "/api.php/calculations?page=1&sortby=timestamp&user=current");
+		histreq.send();
 		
 		function onReceiveBanner() {
 			document.getElementById("banner_holder").innerHTML = this.responseText;

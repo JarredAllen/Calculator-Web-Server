@@ -10,7 +10,7 @@
 	"produces" : ["applications/json", "text/html"],
 	"paths" : {
 		"/calculations" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Lists all calculations that are logged.",
 				"description" : "Retrieves the logs for calculations, with optional filtering and sorting, and displays them, formatted as JSON",
@@ -19,7 +19,7 @@
 				"parameters" : [
 					{	"name" : "user",
 						"in" : "query",
-						"description"  :  "A filter that only looks at data from the given user id or ip address, or the current user if it equals 'current'.",
+						"description"  :  "A filter that only looks at data from a specific user. If it is not you, then you probably lack privileges",
 						"required"  :  false,
 						"type"  :  "string"
 					},
@@ -56,6 +56,15 @@
 						"type" : "integer",
 						"format" : "int32",
 						"default" : 10
+					},
+					{	"name" : "auth-json",
+						"in" : "body",
+						"description" : "A json string that includes the user's auth token under $root_object.token",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "json"
+						}
 					}
 				],
 				"responses" : {
@@ -63,59 +72,33 @@
 						"description" : "Successful, returned the requested JSON"
 					},
 					"403" : {
-						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
-					}
-				}
-			},
-			"post" : {
-				"tags" : [],
-				"summary" : "Log that another calculation happened.",
-				"operationId" : "post-calculations",
-				"consumes" : ["application/x-www-form-urlencoded"],
-				"parameters" : [
-			{	"name" : "entry",
-				"in" : "body",
-				"description" : "JSON-encoded data containing the operation and result and properties of the root object.",
-				"required" : true,
-				"schema" : {
-					"type" : "string",
-					"format" : "json"
-				}
-			}
-				],
-				"responses" : {
-					"201" : {
-						"description" : "The calculation was successfully logged.",
-						"headers" : {
-							"Location" : {
-								"description" : "The location at which the logged calculation can be reviewed.",
-								"type" : "string",
-								"format" : "uri"
-							}
-						}
-					},
-					"400" : {
-						"description" : "Something was wrong with your arguments."
-					},
-					"403" : {
-						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+						"description" : "Either you have not gotten a session token, or you lack privileges to do what you are trying to do."
 					}
 				}
 			}
 		},
 		"/calculations/{calculation_number}" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Responds with info on the given calculation in the log.",
 				"operationId" : "get-calculation-calculation_number",
 				"produces" : ["applications/json", "text"],
 				"parameters" : [
-			{	"name" : "calculation_number",
-				"in" : "path",
-				"description" : "The number of the calculation being returned.",
-				"required" : true,
-				"type" : "integer"
-			}
+					{	"name" : "calculation_number",
+						"in" : "path",
+						"description" : "The number of the calculation being returned.",
+						"required" : true,
+						"type" : "integer"
+					},
+					{	"name" : "auth-json",
+						"in" : "body",
+						"description" : "A json string that includes the user's auth token under $root_object.token",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "json"
+						}
+					}
 				],
 				"responses" : {
 					"200" : {
@@ -131,7 +114,7 @@
 			}
 		},
 		"/calculate/{operation}/{firstNumber}/{secondNumber}" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Performs the given calculation and gives the result.",
 				"operationId" : "calculate-binary_operator",
@@ -156,6 +139,15 @@
 						"required" : true,
 						"type" : "number",
 						"format" : "double"
+					},
+					{	"name" : "auth-json",
+						"in" : "body",
+						"description" : "A json string that includes the user's auth token under $root_object.token",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "json"
+						}
 					}
 				],
 				"responses" : {
@@ -175,7 +167,7 @@
 			}
 		},
 		"/calculate/{operation}/{number}" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Performs the given calculation and gives the result.",
 				"operationId" : "calculate-unary_operator",
@@ -193,6 +185,15 @@
 						"required" : true,
 						"type" : "number",
 						"format" : "double"
+					},
+					{	"name" : "auth-json",
+						"in" : "body",
+						"description" : "A json string that includes the user's auth token under $root_object.token",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "json"
+						}
 					}
 				],
 				"responses" : {
@@ -212,12 +213,22 @@
 			}
 		},
 		"/calculate/operations" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Returns a list of the operations and some info about them.",
 				"operationId" : "get-calculate-list",
 				"produces" : ["applications/json"],
-				"parameters" : [],
+				"parameters" : [
+					{	"name" : "auth-json",
+						"in" : "body",
+						"description" : "A json string that includes the user's auth token under $root_object.token",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "json"
+						}
+					}
+				],
 				"responses" : {
 					"200" : {
 						"description" : "The requested list has been returned."
@@ -229,7 +240,7 @@
 			}
 		},
 		"/calculate/operations/{operationName}" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Returns a list of the operations and some info about them.",
 				"operationId" : "get-calculate-specific_operation",
@@ -240,6 +251,15 @@
 						"description" : "The specific operation to return info about.",
 						"required" : true,
 						"type" : "string"
+					},
+					{	"name" : "auth-json",
+						"in" : "body",
+						"description" : "A json string that includes the user's auth token under $root_object.token",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "json"
+						}
 					}
 				],
 				"responses" : {
@@ -261,7 +281,7 @@
 				"parameters" : [
 					{	"name" : "credentials",
 						"in" : "body",
-						"description" : "A JSON-encoded object with login credentials",
+						"description" : "A JSON-encoded object with login credentials (email or userid, as well as password and api token)",
 						"required" : true,
 						"schema" : {
 							"type" : "string",
@@ -283,7 +303,7 @@
 			}
 		},
 		"/token" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Assigns the user a session token, puts it in the session data, and returns it to the user. This token must be used for the rest of the api.",
 				"operationId" : "get-token",
@@ -297,12 +317,22 @@
 			}
 		},
 		"/userid" : {
-			"get" : {
+			"post" : {
 				"tags" : [],
 				"summary" : "Responds with the user's userid, if logged in, or the user's ip address, if not.",
 				"operationId" : "get-userid",
 				"produces" : ["text"],
-				"parameters" : [],
+				"parameters" : [
+					{	"name" : "auth-json",
+						"in" : "body",
+						"description" : "A json string that includes the user's auth token under $root_object.token",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "json"
+						}
+					}
+				],
 				"responses" : {
 					"200" : {
 						"description" : "Successful, returned the user's id"

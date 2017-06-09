@@ -48,7 +48,6 @@
 			var operands=[];
 			for(var i=1;i<=parseInt(form.getAttribute("data-operand-count")); i++) {
 				operands[i-1] = document.getElementById("operand"+i).value;
-				//console.log("operand #"+i+"="+document.getElementById("operand"+i).value);
 			}
 			var op  = form.operation.value;
 			
@@ -73,10 +72,10 @@
 			for (operand in operands) {
 				uri+="/"+operands[operand]
 			}
-			res.open("GET", uri);
+			res.open("POST", uri);
 			res.send();
 			
-			//return false, so it doesn't POST on its own
+			//return false, so the form doesn't POST anything that I don't want it to.
 			return false;
 		}
 		
@@ -98,7 +97,7 @@
 		
 		var histreq=new XMLHttpRequest();
 		histreq.addEventListener("load", displayHistory);
-		histreq.open("GET", "/api.php/calculations?page=1&sortby=timestamp&user=current");
+		histreq.open("POST", "/api.php/calculations?page=1&sortby=timestamp&user=current");
 		histreq.send();
 		
 		function onReceiveBanner() {
@@ -128,7 +127,7 @@
 		}
 		req=new XMLHttpRequest();
 		req.addEventListener("load", loadOperations);
-		req.open("GET", "/api.php/calculate/operations");
+		req.open("POST", "/api.php/calculate/operations");
 		req.send();
 		
 		function adjustFormSize() {
