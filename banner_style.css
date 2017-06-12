@@ -4,10 +4,35 @@
 	background-color: #eeeeee;
 }
 
-#username {
-	display: inline;
+#banner_username {
+	display: inline-block;
 	background-color: #bbbbbb;
+	text-align: center;
+	min-width: 150px;
+	cursor: pointer;
+	position: relative;
 }
-#username:hover {
+#banner_username * {
+	text-align: right;
+	padding: 0px;
+	margin: 0px;
+}
+#banner_username:hover {
 	background-color: #999999;
+}
+
+#banner_username_dropdown {
+	display: none;
+	position: absolute;
+	z-index: 1;
+	text-align: right;
+}
+#banner_username_dropdown * {
+	border: 4px solid #999999;
+	background-color: #dddddd;
+	width: 150px;
+	text-align: center;
+}
+#banner_username:hover #banner_username_dropdown {
+	display: block;
 }
