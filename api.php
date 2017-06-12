@@ -14,7 +14,7 @@
 	function lacksValidCredentials() {
 		global $token;
 		if($token!=null) {
-			return time()>getSessionCookieExpiration($body->token);
+			return time()>getSessionCookieExpiration($token);
 		}
 		elseif (isset($_COOKIE['User_Session_ID'])) {
 			return time()>getSessionCookieExpiration($_COOKIE['User_Session_ID']);
@@ -382,6 +382,51 @@
 				echo '{ "operation" : "'.$op.'", "result":"'.$result.'"}';
 				break;
 			}
+			elseif (substr($res,1,15)=='change_password') {
+				if(!isset($body->old_password) or !isset($body->new_password)) {
+					http_response_code(400);
+					echo 'missing required data';
+					header('Content-Type: text');
+					die();
+				}
+				if(!isLoggedIn($token)) {
+					http_response_code(409);
+					echo 'You must be logged in to change your password.';
+					header('Content-Type: text');
+					die();
+				}
+				$oldpass=$body->old_password;
+				$newpass=$body->new_password;
+				$email = getEmail($token);
+				if(isValidLogin($email, $oldpass)) {
+					$cmd = 'UPDATE users SET password=SHA2(:password, 256) WHERE Email=:email';
+					$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
+					$stmt = $conn->prepare($cmd);
+					$hashpass = $newpass.' '.$email;
+					$stmt->bindParam(':password', $hashpass);
+					$stmt->bindParam(':email', $email);
+					$stmt->execute();
+					if(isset($body->force_logout)) {
+						$cmd = 'UPDATE session_cookies SET Email=null WHERE Email=:email AND Cookie!=:cookie';
+						$stmt = $conn->prepare($cmd);
+						$stmt->bindParam(':email', $email);
+						if(isset($token)) {
+							$stmt->bindParam(':cookie', $token);
+						}
+						else {
+							$stmt->bindParam(':cookie', $_COOKIE['User_Session_ID']);
+						}
+						$stmt->execute();
+					}
+					http_response_code(204);
+				}
+				else {
+					http_response_code(400);
+					echo 'Invalid password';
+					header('Content-Type: text');
+					die();
+				}
+			}
 			elseif (substr($res,1,5)=='users') {
 				$res=substr($res,6);
 				//echo $res;
@@ -389,8 +434,8 @@
 			elseif (substr($res,1,6)=='userid') {
 				header('Content-Type: application/json');
 				echo '{"id" : "';
-				if(isLoggedIn()) {
-					echo getUserId();
+				if(isLoggedIn($token)) {
+					echo getUserID($token);
 				}
 				else {
 					echo $_SERVER['REMOTE_ADDR'];
@@ -399,8 +444,8 @@
 			}
 			elseif (substr($res, 1, 5)=='token') {
 				header('Content-Type: application/json');
-				if(isset($body->token)) {
-					echo '{ "token" : "'.$_SESSION['token'].'" }';
+				if(isset($token)) {
+					echo '{ "token" : "'.$token.'" }';
 				}
 				elseif(isset($_COOKIE['User_Session_ID'])) {
 					$_SESSION['token']=$_COOKIE['User_Session_ID'];
@@ -428,7 +473,8 @@
 				}
 				$password=$body->password;
 				if(isValidLogin($email, $password)) {
-					login($body->email);
+					echo login($body->email);
+					header('Content-Type: text');
 					http_response_code(204);
 					break;
 				}
@@ -440,11 +486,12 @@
 			}
 			elseif (substr($res, 1, 6)=='logout') {
 				header('Content-Type: text');
-				if(isLoggedIn()) {
-					logout();
+				if(isLoggedIn($token)) {
+					logout($token);
 				}
 				else {
 					echo 'You were not logged in.';
+					http_response_code(409);
 				}
 				break;
 			}

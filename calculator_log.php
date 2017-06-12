@@ -20,7 +20,7 @@
 		if(isLoggedIn()) {
 			echo ' You do not have admin access with your account.';
 		}
-		echo ' '.getUserId(null);
+		//echo ' '.getUserId(null);
 		die();
 	}
 ?>

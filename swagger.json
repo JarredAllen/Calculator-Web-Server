@@ -3,7 +3,7 @@
 	"info" : {
 		"title" : "Jarred's Calculator",
 		"description" : "A simple web calculator that logs what it does.",
-		"version" : "0.2"
+		"version" : "0.3"
 	},
 	"basePath" : "/api.php/",
 	"schemes" : ["http"],
@@ -272,10 +272,44 @@
 				}
 			}
 		},
+		"/change_password" : {
+			"post" : {
+				"tags" : [],
+				"summary" : "If the user gives the correct password for their account, then the user may change their password.",
+				"operationId" : "change-password",
+				"produces" : ["text"],
+				"parameters" : [
+					{	"name" : "credentials",
+						"in" : "body",
+						"description" : "A JSON-encoded object with the old password, the new password, and optionally, force_logout may be specified to force all other sessions to log out.",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "JSON",
+							"example" : "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\", \"old_password\" : \"password\", \"new_password\" : \"password123\", \"force_logout\" : 44360817475 }"
+						}
+					}
+				],
+				"responses" : {
+					"204" : {
+						"description" : "The request was successfully fulfilled."
+					},
+					"400" : {
+						"description" : "The current password supplied was incorrect."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					},
+					"409" : {
+						"description" : "You are currently not logged in."
+					}
+				}
+			}
+		},
 		"/login" : {
 			"post" : {
 				"tags" : [],
-				"summary" : "Logs the user into their account given the password and either the userid or the email.",
+				"summary" : "Logs the user into their account given the password and either the userid or the email, and then replaces the token.",
 				"operationId" : "login",
 				"produces" : ["text"],
 				"parameters" : [
@@ -291,13 +325,43 @@
 				],
 				"responses" : {
 					"204" : {
-						"description" : "The user has successfully logged in."
+						"description" : "The user has successfully logged in. The response contains a new token which should be used instead of the old one."
 					},
 					"400" : {
 						"description" : "The credentials were either not supplied or invalid. The response will specify which one."
 					},
 					"403" : {
 						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					}
+				}
+			}
+		},
+		"/logout" : {
+			"post" : {
+				"tags" : [],
+				"summary" : "Logs the user out of their account and replaces their token.",
+				"operationId" : "logout",
+				"produces" : ["text"],
+				"parameters" : [
+					{	"name" : "credentials",
+						"in" : "body",
+						"description" : "A JSON-encoded object with login credentials (email or userid, as well as password and api token)",
+						"required" : true,
+						"schema" : {
+							"type" : "string",
+							"format" : "JSON"
+						}
+					}
+				],
+				"responses" : {
+					"204" : {
+						"description" : "The user has successfully logged out. The response contains a new token which should be used instead of the old one."
+					},
+					"403" : {
+						"description" : "You have not gotten a session token. Please GET /api.php/token to get one."
+					},
+					"409" : {
+						"description" : "You are not logged in, so you can't log out."
 					}
 				}
 			}

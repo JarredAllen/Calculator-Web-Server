@@ -15,28 +15,33 @@
 	function assignCookie($name, $value, $days) {
 		$expiration = round(time()/86400)*86400 + $days*86400;
 		if($name  == 'User_Session_ID') {
-			//check if it already is in the cookie database
-			$cmd = 'SELECT COUNT(*) FROM session_cookies WHERE Cookie=:value';
-			$conn = new PDO("mysql:host=localhost;dbname=mysql", view_username, view_password);
+			if(isset($_COOKIE['User_Session_ID'])) {
+				if($_COOKIE['User_Session_ID']==$value) {
+					return false;
+				}
+				else {
+					$cmd = 'DELETE FROM session_cookies WHERE cookie=:value';
+					$conn=new PDO("mysql:host=localhost;dbname=mysql", modify_username, modify_password);
+					$stmt = $conn->prepare($cmd);
+					$stmt->bindParam(':value', $_COOKIE['User_Session_ID']);
+					$stmt->execute();
+				}
+			}
+			//give it to the user			
+			setcookie($name, $value, $expiration, '/');
+			$_COOKIE['User_Session_ID']=$value;
+			//update the cookie database
+			$cmd = 'INSERT INTO session_cookies (cookie, expire) VALUES ( :value , :expiration )';
+			$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_username, insert_password);
 			$stmt = $conn->prepare($cmd);
 			$stmt->bindParam(':value', $value);
+			$stmt->bindParam(':expiration', $expiration);
 			$stmt->execute();
-			if($stmt->fetchAll()[0][0] == 0) {
-				//give it to the user			
-				setcookie($name, $value, $expiration, '/');
-				$_COOKIE['User_Session_ID']=$value;
-				//update the cookie database
-				$cmd = 'INSERT INTO session_cookies (cookie, expire) VALUES ( :value , :expiration )';
-				$conn = new PDO("mysql:host=localhost;dbname=mysql", insert_username, insert_password);
-				$conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-				$stmt = $conn->prepare($cmd);
-				$stmt->bindParam(':value', $value);
-				$stmt->bindParam(':expiration', $expiration);
-				$stmt->execute();
-			}
+			return $value;
 		}
 		else {
 			setcookie($name, $value, $expiration, '/');
+			return $value;
 		}
 	}
 
@@ -48,9 +53,9 @@
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':cookie', $cookie);
 		$stmt->execute();
-		$time = $stmt->fetchAll()[0][0];
+		$time = $stmt->fetchAll();
 		if(isset($time[0][0])) {
-			return $time;
+			return $time[0][0];
 		}
 		else {
 			//The cookie does not exist, so it returns a time guaranteed to be in the past.
@@ -70,6 +75,7 @@
 		$stmt->bindParam(':time', $time);
 		$stmt->execute();
 	}
+	
 	if(!isset($nosetCookie) or !$nosetCookie) {
 		if(!isset($_COOKIE['User_Session_ID'])) {
 			//the user lacks a cookie
@@ -97,10 +103,10 @@
 	}
 	
 	function login($email, $token=null) {
+		global $token;
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
-		$cmd = 'UPDATE session_cookies SET Email=:email WHERE Cookie=:cookie;';
+		$cmd = 'DELETE FROM session_cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
-		$stmt->bindParam(':email', $email);
 		if($token===null) {
 			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
 		}
@@ -108,6 +114,13 @@
 			$stmt->bindParam(':cookie', $token);
 		}
 		$stmt->execute();
+		$token = assignCookie('User_Session_ID', guid(), 14);
+		$cmd = 'UPDATE session_cookies SET Email=:email WHERE Cookie=:cookie;';
+		$stmt = $conn->prepare($cmd);
+		$stmt->bindParam(':email', $email);
+		$stmt->bindParam(':cookie', $token);
+		$stmt->execute();
+		return $cookie;
 	}
 	
 	$current_user_username = null;
@@ -142,6 +155,34 @@
 			return $val[0][0];
 		}
 		$current_user_username="";
+		return null;
+	}
+	
+	$current_email = null;
+	function getEmail($token = null) {
+		global $current_email;
+		if($current_email !== null) {
+			if(current_email==="") {
+				return null;
+			}
+			return $current_email;
+		}
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
+		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
+		$stmt = $conn->prepare($cmd);
+		if($token === null) {
+			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+		}
+		else {
+			$stmt->bindParam(':cookie', $token);
+		}
+		$stmt->execute();
+		$val=$stmt->fetchAll();
+		if(isset($val[0][0])) {
+			$current_email=$val[0][0];
+			return $current_email;
+		}
+		$current_email="";
 		return null;
 	}
 	
@@ -202,24 +243,24 @@
 	}
 	
 	$is_logged_in=null;
-	function isLoggedIn( $token = null) {
+	function isLoggedIn( $token = null ) {
 		global $is_logged_in;
-		if($is_logged_in) {
+		if($is_logged_in !== null) {
 			//warning: This assumes that the token is kept constant and equal to the cookie.
 			return $is_logged_in;
 		}
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Session_Cookies WHERE Cookie=:cookie;';
 		$stmt = $conn->prepare($cmd);
-		if($token !== null) {
-			$stmt->bindParam(':cookie', $token);
+		if($token === null) {
+			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
 		}
 		else {
-			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
+			$stmt->bindParam(':cookie', $token);
 		}
 		$stmt->execute();
 		
-		$is_logged_in = ($stmt->fetchAll()[0][0]!==null);
+		$is_logged_in = isset($stmt->fetchAll()[0][0]);
 		return $is_logged_in;
 	}
 	
