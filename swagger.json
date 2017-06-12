@@ -9,6 +9,39 @@
 	"schemes" : ["http"],
 	"produces" : ["applications/json", "text/html"],
 	"paths" : {
+		"/accounts" : {
+			"post" : {
+				"tags" : [],
+				"summary" : "Creates a new account from a given username and password, and logs the user in, and then returns a new session token.",
+				"operationId" : "post : create-account",
+				"produces" : ["text"],
+				"parameters" : [
+					{	"name" : "account_info",
+						"in" : "body",
+						"description" : "A JSON-encoded object with the api token and the new account's email address, username and password.",
+						"schema" : {
+							"type"  :  "string",
+							"format"  :  "JSON",
+							"example"  :  "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\", \"email\" : \"foo@example.com\", \"username\" : \"foo\", \"password\" : \"password\"}"
+						}
+					}
+				],
+				"responses" : {
+					"204" : {
+						"description" : "The requested account was successfully created."
+					},
+					"400" : {
+						"description" : "The JSON parameter was incomplete"
+					},
+					"403" : {
+						"description" : "You did not provide a session token."
+					},
+					"409" : {
+						"description" : "An account with that email address already exists"
+					}
+				}
+			}
+		},
 		"/calculations" : {
 			"post" : {
 				"tags" : [],
@@ -286,7 +319,8 @@
 						"schema" : {
 							"type" : "string",
 							"format" : "JSON",
-							"example" : "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\", \"old_password\" : \"password\", \"new_password\" : \"password123\", \"force_logout\" : 44360817475 }"
+							"example" : "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\", \"old_password\" : \"password\", \"new_password\" : \"password123\", \"force_logout\" : 44360817475 }",
+							"x-example-notes" : "That last variable force_logout does not need to be specified, and its value doesn't matter"
 						}
 					}
 				],
@@ -315,11 +349,12 @@
 				"parameters" : [
 					{	"name" : "credentials",
 						"in" : "body",
-						"description" : "A JSON-encoded object with login credentials (email or userid, as well as password and api token)",
+						"description" : "A JSON-encoded object with login credentials (email or userid, as well as password) and api token",
 						"required" : true,
 						"schema" : {
 							"type" : "string",
-							"format" : "JSON"
+							"format" : "JSON",
+							"example" : "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\", \"userid\" : 4, \"password\" : \"password\"}"
 						}
 					}
 				],

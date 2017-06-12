@@ -24,6 +24,9 @@
 				if(this.status==204) {
 					location.href="<?php if(isset($_GET['redirect'])){ echo $_GET['redirect']; } else{ echo '/clientcalc.php'; } ?>"
 				}
+				else {
+					document.getElementById("errors").innerHTML='Invalid username or password';
+				}
 			}
 			var lr=new XMLHttpRequest();
 			lr.addEventListener("load", processLoginReply);
@@ -43,7 +46,14 @@
 				logout();
 			}
 		?></p>
-		<p>Please input your e-mail address and password to log in.</p>
+		<?php
+			if(isset($_GET['justregistered'])) {
+				echo '<p>Your account has been created. Please log in.</p>';
+			}
+			else {
+				echo '<p>Please input your e-mail address and password to log in.</p>';
+			}
+		?>
 		<p id="errors"><?php if(isset($_GET['invalid'])){ echo 'Invalid username or password.';} if(isset($_GET['failed'])){echo 'Unknown login function error.';}?></p>
 		<form id="login_form" onsubmit="return processLogin()" method="GET" action="/login.php">
 				<div class="input_row"><p>E-mail: </p><input name="email" type="email" required></div>

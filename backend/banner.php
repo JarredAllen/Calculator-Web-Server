@@ -16,7 +16,7 @@ function register() {
 }
 </script>
 <!-- This banner is meant to go in a div with id banner_holder. Please put it there, and don't give that any style. -->
-<div id="username"><?php if(isLoggedIn()){echo getUsername();}else{echo 'Log in or sign up to enjoy all our features.';} ?></div>
+<div id="username"><?php if(isLoggedIn()){echo htmlentities(getUsername());}else{echo 'Log in or sign up to enjoy all our features.';} ?></div>
 <button id="logout" onclick="location.href='/login.php?<?php
 			if(isLoggedIn()) {
 				echo'logout&';

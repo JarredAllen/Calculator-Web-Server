@@ -1,6 +1,10 @@
 <?php
 	include 'myphpheader.php';
 	
+	http_response_code(410);
+	echo 'Please use the API for this.';
+	die();
+	
 	if(!isset($_POST['email'])) {
 		redirect('/register_account.php');
 	}

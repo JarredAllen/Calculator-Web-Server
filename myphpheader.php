@@ -205,7 +205,14 @@
 			$stmt->bindParam(':cookie', $_COOKIE["User_Session_ID"]);
 		}
 		$stmt->execute();
-		$email=$stmt->fetchAll()[0][0];
+		$email=$stmt->fetchAll();
+		if(isset($email[0][0])) {
+			$email=$email[0][0];
+		}
+		else {
+			$current_user_id=-1;
+			return null;
+		}
 		
 		$cmd = 'SELECT UserID FROM Users WHERE Email=:email;';
 		$stmt = $conn->prepare($cmd);
@@ -231,8 +238,33 @@
 		return $username;
 	}
 	
+	function getEmailById($id) {
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
+		$cmd = 'SELECT Email FROM Users WHERE UserID=:id;';
+		$stmt = $conn->prepare($cmd);
+		$stmt->bindParam(':id', $id);
+		$stmt->execute();
+		$username=$stmt->fetchAll()[0][0];
+		return $username;
+	}
+	
+	function getIdByEmail($email) {
+		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
+		$cmd = 'SELECT UserID FROM Users WHERE Email=:email;';
+		$stmt = $conn->prepare($cmd);
+		$stmt->bindParam(':email', $email);
+		$stmt->execute();
+		$id=$stmt->fetchAll();
+		if(isset($id[0][0])) {
+			return $id[0][0];
+		}
+		else {
+			return null;
+		}
+	}
+	
 	function getUserIdentifier($token=null) {
-		//this is the user's id if logged in, or the 
+		//this is the user's id if logged in, or the ip address, otherwise
 		$id = getUserID($token);
 		if($id===null) {
 			return $_SERVER['REMOTE_ADDR'];
