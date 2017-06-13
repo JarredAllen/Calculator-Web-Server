@@ -3,7 +3,7 @@
 	"info" : {
 		"title" : "Jarred's Calculator",
 		"description" : "A simple web calculator that logs what it does.",
-		"version" : "0.3"
+		"version" : "0.4"
 	},
 	"basePath" : "/api.php/",
 	"schemes" : ["http"],
@@ -38,6 +38,81 @@
 					},
 					"409" : {
 						"description" : "An account with that email address already exists"
+					}
+				}
+			}
+		},
+		"/accounts/{account_number}" : {
+			"post" : {
+				"tags" : [],
+				"summary" : "Views information on the given account.",
+				"operationId" : "view_specific_account",
+				"produces" : ["text", "applications/json"],
+				"parameters" : [
+					{	"name" : "account_number",
+						"in" : "path",
+						"description" : "The number of the account being viewed, or current to view your own account.",
+						"required" : true,
+						"type" : "string"
+					},
+					{	"name" : "auth_token",
+						"in" : "body",
+						"description" : "A JSON-encoded object with the api token.",
+						"schema" : {
+							"type"  :  "string",
+							"format"  :  "JSON",
+							"example"  :  "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\" }"
+						}
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "The requested info has been returned as a JSON object."
+					},
+					"403" : {
+						"description" : "You did not provide a session token, or your token does not allow admin access and the account is not yours."
+					},
+					"404" : {
+						"description" : "An account with that id does not exist."
+					}
+				}
+			},
+			"put" : {
+				"tags" : [],
+				"summary" : "Updates information on the requested account, including email address, username, and password.",
+				"operationId" : "update_specific_account",
+				"produces" : ["text", "applications/json"],
+				"parameters" : [
+					{	"name" : "account_number",
+						"in" : "path",
+						"description" : "The number of the account being viewed, or current to view your own account.",
+						"required" : true,
+						"type" : "string"
+					},
+					{	"name" : "account_info",
+						"in" : "body",
+						"description" : "A JSON-encoded object with the api token, the account password, and the new info being updated.",
+						"schema" : {
+							"type"  :  "string",
+							"format"  :  "JSON",
+							"example"  :  "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\", \"password\":\"password\", \"new_password\":\"letmein\", \"email\":\"email@example.com\", \"username\":\"User\" }"
+						}
+					}
+				],
+				"responses" : {
+					"200" : {
+						"description" : "The information change was successful. Information on the account is returned as a JSON object.",
+						"schema" : {
+							"type" : "string",
+							"format" : "JSON",
+							"example" : "{ \"userid\":4, \"email\":\"email@example\", \"username\":\"User\" }"
+						}
+					},
+					"400" : {
+						"description" : "The JSON object lacked a password variable"
+					},
+					"403" : {
+						"description" : "You did not provide a session token, or you got the password wrong."
 					}
 				}
 			}
@@ -307,8 +382,9 @@
 		},
 		"/change_password" : {
 			"post" : {
+				"deprecated" : true,
 				"tags" : [],
-				"summary" : "If the user gives the correct password for their account, then the user may change their password.",
+				"summary" : "Old account change functionality. Please PUT to /accounts/{account #} to do this.",
 				"operationId" : "change-password",
 				"produces" : ["text"],
 				"parameters" : [

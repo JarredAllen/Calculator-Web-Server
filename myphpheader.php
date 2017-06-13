@@ -229,23 +229,39 @@
 	}
 	
 	function getUserById($id) {
+		if($id==4) {
+			return null;
+		}
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Username FROM Users WHERE UserID=:id;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':id', $id);
 		$stmt->execute();
-		$username=$stmt->fetchAll()[0][0];
-		return $username;
+		$res=$stmt->fetchAll();
+		if(isset($res[0][0])) {
+			return $res[0][0];
+		}
+		else {
+			return null;
+		}
 	}
 	
 	function getEmailById($id) {
+		if($id==4) {
+			return null;
+		}
 		$conn = new PDO('mysql:host=localhost;dbname=mysql', view_username, view_password);
 		$cmd = 'SELECT Email FROM Users WHERE UserID=:id;';
 		$stmt = $conn->prepare($cmd);
 		$stmt->bindParam(':id', $id);
 		$stmt->execute();
-		$username=$stmt->fetchAll()[0][0];
-		return $username;
+		$res=$stmt->fetchAll();
+		if(isset($res[0][0])) {
+			return $res[0][0];
+		}
+		else {
+			return null;
+		}
 	}
 	
 	function getIdByEmail($email) {

@@ -22,3 +22,11 @@ input {
 .align > div > * {
 	display: table-cell;
 }
+
+.error {
+	color: red;
+}
+
+.blankline {
+	font-size: 1px;
+}

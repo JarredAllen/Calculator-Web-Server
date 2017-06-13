@@ -161,8 +161,52 @@
 	$res=explode('/',explode('?', followingString($_SERVER['REQUEST_URI'], 'api.php/'), 2)[0]);
 	switch($_SERVER['REQUEST_METHOD']) {
 		case 'POST':
-			switch($res[0]) {
+			switch(strtolower($res[0])) {
 				case 'accounts':
+					if(isset($res[1])) {
+						if(strtolower($res[1])=='current') {
+							if(isLoggedIn($token)) {
+								$res[1]=getUserId($token);
+							}
+							else {
+								http_response_code(409);
+								header('Content-Type: text');
+								echo 'You can only do that while logged in.';
+								die();
+							}
+						}
+						if(is_numeric($res[1])) {
+							$res[1]=(int)$res[1];
+							if(getUserId($token)==$res[1] or hasAdminAccess($token)) {
+								$x=new stdClass();
+								$x->userid	= $res[1];
+								$x->email	= getEmailById($res[1]);
+								$x->username= getUserById($res[1]);
+								if($x->email===null or $res[1]===4) {
+									header('Content-Type: text');
+									http_response_code(404);
+									echo 'There is no user with that id';
+									die();
+								}
+								else {
+									header('Content-type: applications/json');
+									echo json_encode($x);
+								}
+								break;
+							}
+							else {
+								http_response_code(403);
+								echo 'You do not have an admin account, so you are not allowed to access other accounts.';
+								die();
+							}
+						}
+						else {
+							http_response_code(404);
+							echo 'Only account numbers may be put here, not '.$res[1].'.';
+							die();
+						}
+						break;
+					}
 					if(!isset($body->email) or !isset($body->username) or !isset($body->password)) {
 						http_response_code(400);
 						echo 'Incomplete information in JSON parameter.';
@@ -222,6 +266,9 @@
 						if(strtolower($user)=='current') {
 							$user=getUserIdentifier($token);
 						}
+					}
+					if(!hasAdminAccess($token)) {
+						$user=getUserIdentifier($token);
 					}
 					if(isset($_GET['sortby']) || isset($_GET['orderby'])) {
 						if(isset($_GET['sortby'])) {
@@ -456,7 +503,13 @@
 					break;
 				case 'userid':
 					header('Content-Type: application/json');
-					echo '{"id" : "'.getUserIdentifier($token).'"}';
+					$id=getUserIdentifier($token);
+					if(is_numeric($id)) {
+						echo '{"id":'.$id.'}';
+					}
+					else {
+						echo '{"id" : "'.$id.'"}';
+					}
 					break;
 				
 				case 'token':
@@ -511,9 +564,99 @@
 			}
 		break;
 		
+		case 'PUT':
+			switch($res[0]) {
+				case 'accounts':
+					if(isset($res[1])) {
+						if(is_numeric($res[1])) {
+							if(!isset($body->password)) {
+								http_response_code(400);
+								header('Content-Type: text');
+								echo 'You need to specify a password.';
+								die();
+							}
+							$res[1]=(int)$res[1];
+							if(isValidLogin(getEmailById($res[1]), $body->password)) {
+								$conn = new PDO('mysql:host=localhost;dbname=mysql', modify_username, modify_password);
+								$cmd= 'UPDATE users SET ';
+								if(isset($body->email)) {
+									$cmd.='Email=:email, ';
+								}
+								if(isset($body->username)) {
+									$cmd.='Username=:username, ';
+								}
+								if(isset($body->new_password) or isset($body->email)) {
+									$cmd.='Password=SHA2(:password, 256), ';
+								}
+								if(strlen($cmd)==17) {
+									http_response_code(400);
+									header('Content-Type: text');
+									echo 'You are not changing anything.';
+									die();
+								}
+								$cmd=substr($cmd, 0, -2).' WHERE userid=:userid';
+								$stmt=$conn->prepare($cmd);
+								if(isset($body->email)) {
+									$stmt->bindParam(':email', $body->email);
+									if(!isset($body->new_password)) {
+										$hashpass=$body->password.' '.$body->email;
+										$stmt->bindParam(':password', $hashpass);
+									}
+								}
+								if(isset($body->username)) {
+									$stmt->bindParam(':username', $body->username);
+								}
+								if(isset($body->new_password)) {
+									$hashpass=$body->new_password.' ';
+									if(isset($body->email)) {
+										$hashpass.=$body->email;
+									}
+									else {
+										$hashpass.=getEmailById($res[1]);
+									}
+									$stmt->bindParam(':password', $hashpass);
+								}
+								$stmt->bindParam(':userid', $res[1]);
+								$stmt->execute();
+								$stmt->fetchAll();
+								$x=new stdClass();
+								$x->userid	= $res[1];
+								$x->email	= getEmailById($res[1]);
+								$x->username= getUserById($res[1]);
+								header('Content-Type: applications/json');
+								echo(json_encode($x));
+							}
+							else {
+								http_response_code(403);
+								header('Content-Type: text');
+								echo 'Invalid password or non-existant userid.';
+								die();
+							}
+						}
+						else {
+							http_response_code(404);
+							header('Content-Type: text');
+							echo 'You must specify an account number.';
+							die();
+						}
+						break;
+					}
+					// else { fallThrough()...
+				default:
+					http_response_code(405);
+					header('Allow: POST');
+			}
+			
+			break;
+		
 		default:
 			http_response_code(405);
-			header('Allow: POST');
+			if($res[0]='accounts' and count($res)>1) {
+				header('Allow: POST, PUT');
+			}
+			else {
+				header('Allow: POST');
+			}
 			die();
 	}
 ?>
