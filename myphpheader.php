@@ -79,11 +79,11 @@
 	if(!isset($nosetCookie) or !$nosetCookie) {
 		if(!isset($_COOKIE['User_Session_ID'])) {
 			//the user lacks a cookie
-			assignCookie('User_Session_ID', guid(), 14);
+			assignCookie('User_Session_ID', guid(), 7);
 		}
 		if(time()>getSessionCookieExpiration($_COOKIE['User_Session_ID'])) {
 			//the user tried to use an expired cookie
-			assignCookie('User_Session_ID', guid(), 14);
+			assignCookie('User_Session_ID', guid(), 7);
 			clearOldCookies();
 		}
 	}
@@ -120,7 +120,7 @@
 		$stmt->bindParam(':email', $email);
 		$stmt->bindParam(':cookie', $token);
 		$stmt->execute();
-		return $cookie;
+		return $token;
 	}
 	
 	$current_user_username = null;

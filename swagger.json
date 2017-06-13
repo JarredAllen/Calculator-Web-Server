@@ -421,7 +421,7 @@
 				"tags" : [],
 				"summary" : "Logs the user into their account given the password and either the userid or the email, and then replaces the token.",
 				"operationId" : "login",
-				"produces" : ["text"],
+				"produces" : ["text", "applications/json"],
 				"parameters" : [
 					{	"name" : "credentials",
 						"in" : "body",
@@ -435,8 +435,13 @@
 					}
 				],
 				"responses" : {
-					"204" : {
-						"description" : "The user has successfully logged in. The response contains a new token which should be used instead of the old one."
+					"200" : {
+						"description" : "The user has successfully logged in. The response contains a new token which should be used instead of the old one.",
+						"schema" : {
+							"type" : "string",
+							"format" : "JSON",
+							"example" : "{ \"token\" : \"b492cb33-3c82-cfba-f972-06b6884c2b52\" }"
+						}
 					},
 					"400" : {
 						"description" : "The credentials were either not supplied or invalid. The response will specify which one."

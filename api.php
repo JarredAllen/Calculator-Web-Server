@@ -514,7 +514,7 @@
 				
 				case 'token':
 					$token=guid();
-					assignCookie('User_Session_ID', $token, 14);
+					assignCookie('User_Session_ID', $token, 1);
 					echo '{ "token" : "'.$token.'" }';
 					break;
 				
@@ -533,9 +533,9 @@
 					}
 					$password=$body->password;
 					if(isValidLogin($email, $password)) {
-						echo login($email);
-						header('Content-Type: text');
-						http_response_code(204);
+						echo '{ "token" : "'.login($email).'" }';
+						header('Content-Type: applications/json');
+						http_response_code(200);
 						break;
 					}
 					else {
