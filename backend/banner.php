@@ -3,8 +3,8 @@
 ?>
 
 <!-- This banner is meant to go in a div with id banner_holder. Please put it there, and don't give that any style. -->
-<div id="banner_username"><?php if(isLoggedIn()){echo htmlentities(getUsername());}else{echo 'Log in or sign up to enjoy all our features.';} ?>
-	<div id="banner_username_dropdown">
+<div id="banner_username" class="dropdown"><?php if(isLoggedIn()){echo htmlentities(getUsername());}else{echo 'Log in or sign up to enjoy all our features.';} ?>
+	<div id="banner_username_dropdown" class="dropdown_list">
 		<?php
 			if(isLoggedIn()) {
 				echo '<button id="banner_manage_account" onclick="location.href=\'/manage_account.php\'">';
@@ -32,3 +32,4 @@
 </div>
 
 <link rel="stylesheet" type="text/css" href="/banner_style.css">
+<link rel="stylesheet" type="text/css" href="/dropdown.css">

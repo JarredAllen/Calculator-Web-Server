@@ -1,0 +1,13 @@
+.dropdown {
+	display: inline-block;
+	cursor: pointer;
+	position: relative;
+}
+.dropdown_list {
+	display: none;
+	position: absolute;
+	z-index: 1;
+}
+.dropdown:hover .dropdown_list {
+	display: block;
+}
