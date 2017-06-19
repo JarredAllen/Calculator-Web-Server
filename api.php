@@ -124,7 +124,7 @@
 				$cmd.=' ORDER BY '.$orderby.$dir;
 			}
 		}
-		if($page!==null && $page>0) {
+		if($page!==null and $page>0) {
 			$page--;
 			$cmd.=' LIMIT '.($page*$pagesize).','.$pagesize;
 		}
@@ -344,6 +344,7 @@
 					}
 					$result = 'Sorry, something broke.';
 					$res[0]=strtolower($res[0]);
+					file_put_contents('foo.txt', 'foobar');
 					switch($res[0]) {
 						case 'add':
 							if(count($res)<=2) {
@@ -448,7 +449,14 @@
 							die();
 					}
 					header('Content-Type: application/json');
-					logCalculation($_SERVER['REMOTE_ADDR'], getUserId($token), $_SERVER['HTTP_USER_AGENT'], $op, $result);
+					if(isset($_SERVER['HTTP_USER_AGENT'])) {
+						$ua=$_SERVER['HTTP_USER_AGENT'];
+					}
+					else {
+						$ua='No User Agent';
+					}
+					logCalculation($_SERVER['REMOTE_ADDR'], getUserId($token), $ua, $op, $result);
+					// logCalculation($_SERVER['REMOTE_ADDR'], 1, 'foo', $op, $result);
 					echo '{ "operation" : "'.$op.'", "result":"'.$result.'"}';
 					break;
 				

@@ -14,7 +14,7 @@
 				var form=document.getElementById("login_form");
 				var params='{ "email" : "'+form.email.value+'", "password" : "'+form.password.value+'" }';
 				function processLoginReply() {
-					if(this.status==204) {
+					if(this.status==200) {
 						location.href="<?php if(isset($_GET['redirect'])){ echo $_GET['redirect']; } else{ echo '/clientcalc.php'; } ?>"
 					}
 					else {
